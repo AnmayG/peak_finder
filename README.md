@@ -1,4 +1,4 @@
-## README.md
+## README
 
 This is the peak finder for NV centers at the Harvard Yao group. 
 
