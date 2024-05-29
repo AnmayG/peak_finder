@@ -1,0 +1,49 @@
+function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
+    baseline, split, tolerance, signal, raw, kwargs)
+    % Naive, remove duplicates
+    duplicates = pairs(pairs(:, 1) == pairs(:, 2));
+    pairs(duplicates, :) = [];
+
+    % Format into parameters
+    parameters = zeros(13, 1); % Need to fix with phantom peaks!
+
+    if ~isempty(pairs)
+        peaks_111 = pairs(1, :);
+        peaks_111_locs = [locs(peaks_111(1)), locs(peaks_111(2))];
+        peaks_111_vals = [vals(peaks_111(1)), vals(peaks_111(2))];
+        peaks_111_fwhm = [widths(peaks_111(1)), widths(peaks_111(2))];
+        peaks_111_cont = [(peaks_111_vals(1) - baseline) / baseline, (peaks_111_vals(2) - baseline) / baseline];
+        peaks_111_stds = peaks_111_fwhm ./ (2 * sqrt(2 * log(2))); % assuming Gaussian
+
+        parameters(1) = (peaks_111_locs(1) + peaks_111_locs(2)) / 2; % Average split
+        parameters(2) = abs(peaks_111_locs(2) - peaks_111_locs(1)) / 2; % Deviation
+        parameters(3) = (peaks_111_stds(1) + peaks_111_stds(2)) / 2; % Average width
+        parameters(4) = abs(peaks_111_stds(1) - peaks_111_stds(2)) / 2; % Deviation
+        parameters(5) = peaks_111_cont(1) + peaks_111_cont(2); % Average height
+        parameters(6) = (peaks_111_cont(2) - peaks_111_cont(1)) / 2; % Deviation
+        
+        peak_height_sums = vals(peak)
+    else
+        % Can use global parameters here if we want, this is a failure case
+        % parameters(1) = 2.7e9;
+        % parameters(7) = 1;
+    end
+end
+
+% Testing code (commented out for now)
+% load('2p03GPa_14p9k_23db_39G.mat'); % GWide
+% x = 183;
+% y = 45;
+% 
+% x_grid_width = 64;
+% y_grid_width = 64;
+% for x = randi([0, x_grid_width - 1], 1, 256 / x_grid_width) + (1:x_grid_width:256)
+%     for y = randi([0, y_grid_width - 1], 1, 256 / y_grid_width) + (1:y_grid_width:256)
+%         [vals, locs, widths, proms, threshold, signal] = find_peaks_at_point(x, y, gWide);
+%         split = 2.91e9;
+%         tolerance = 0.05e9;
+%         [index_pairs, sorted_locs, sorted_indices] = partner_peak(locs, split, tolerance, true, signal, threshold, gWide, vals);
+%         baseline = find_baseline(x, y, gWide);
+%         peaks_to_seed2(index_pairs, sorted_indices, locs, vals, widths, baseline, split, tolerance);
+%     end
+% end
