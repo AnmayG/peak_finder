@@ -1,15 +1,16 @@
 function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
-    baseline, split, tolerance, signal, raw, kwargs)
+    baseline, error_coeff)
     % Naive, remove duplicates
     duplicates = pairs(pairs(:, 1) == pairs(:, 2));
     pairs(duplicates, :) = [];
 
     % Format into parameters
-    parameters = zeros(13, 1);
+    parameters = zeros(16, 1);
 
     if ~isempty(pairs)
         % peaks_111 = pairs(1, :);
-        peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
+        % peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
+        peak_height_sums = max([vals(pairs(:, 1)), vals(pairs(:, 2))]);
         [~, peaks_non111_ind] = max(peak_height_sums);
         peaks_111 = pairs(peaks_non111_ind, :);
         try
@@ -48,6 +49,10 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
         parameters(12) = (peaks_non111_cont(2) - peaks_non111_cont(1)) / 2; % Deviation
 
         parameters(13) = baseline;
+
+        parameters(14) = error_coeff;
+        parameters(15) = min(peaks_111_locs);
+        parameters(16) = max(peaks_111_locs);
     else
         % Can use global parameters here if we want, this is a failure case
         % parameters(1) = 2.7e9;
