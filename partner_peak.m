@@ -18,7 +18,6 @@ function [locs, vals, widths, index_pairs, error_coeff]...
     proms = proms(sorted_indices);
     goodness_matrix = zeros(length(sorted_indices), length(sorted_indices)); % Adjacency matrix between peaks for matching
     for i = sorted_indices % conventional indexes still work!
-        disp(i)
         peak = locs(i);
         peak_goodness = partner_peak_vector(peak, locs, split, tolerance);
         goodness_matrix(i, :) = peak_goodness;
@@ -235,9 +234,10 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
     [vals, locs, widths, proms] = ...
         findpeaks(-signal_cropped + threshold, x_cropped, ...
                         'SortStr','descend',...
-                        'WidthReference','halfheight');
+                        'WidthReference','halfheight', ...
+                        'NPeaks',1);
     vals = -vals + threshold;
-    [~, prom_index] = maxk(proms, 1);
+    [~, prom_index] = maxk(vals, 1);
     vals = vals(prom_index);
     locs = locs(prom_index);
     widths = widths(prom_index);
