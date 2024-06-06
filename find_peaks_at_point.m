@@ -22,6 +22,7 @@ function [vals, locs_peaks, widths, prominences, peak_threshold, z, raw] = ...
                             'NPeaks', num_max_peaks, ...,
                             'MinPeakDistance', diff_peak_distance);
         vals = -vals + peak_threshold;
+
         if display
             figure
             hold on

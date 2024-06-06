@@ -5,10 +5,11 @@ function [locs, vals, widths, index_pairs, error_coeff]...
                          signal, ...
                          threshold, ...
                          freq, ...
-                         vals, widths, proms, display, raw)
-    if nargin < 10
+                         vals, widths, proms, method, display, raw)
+    if nargin < 11
         display = false;
     end
+
     % Check to see if a real partner peak exists by looking in the possible
     % physical interval
     [vals, sorted_indices] = sort(vals); % Sort peaks from left to right
@@ -16,6 +17,7 @@ function [locs, vals, widths, index_pairs, error_coeff]...
     locs = locs(sorted_indices); % Rearrange vals and widths accordingly
     widths = widths(sorted_indices);
     proms = proms(sorted_indices);
+
     goodness_matrix = zeros(length(sorted_indices), length(sorted_indices)); % Adjacency matrix between peaks for matching
     for i = sorted_indices % conventional indexes still work!
         peak = locs(i);
@@ -58,10 +60,9 @@ function [locs, vals, widths, index_pairs, error_coeff]...
         end
     end
 
-    error_coeff = 4;
     [locs, vals, widths, index_pairs, error_coeff] = ...
         add_new_peak(locs', vals, widths', proms', index_pairs, ...
-        split, tolerance, signal, raw, freq);
+        split, tolerance, signal, raw, freq, method);
 
     if display
         figure
@@ -135,7 +136,7 @@ function [peaks_goodness] = partner_peak_vector(peak_loc, ...
 end
 
 function [updated_locations, updated_values, updated_widths, updated_pairs, error_coeff] = ...
-    add_new_peak(locations, values, widths, proms, pairs, split, tolerance, signal, raw, x)
+    add_new_peak(locations, values, widths, proms, pairs, split, tolerance, signal, raw, freq, method)
     % Initialize updated arrays with the original lists
     updated_locations = locations;
     updated_values = values;
@@ -150,7 +151,7 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
             % Self-pair found, generate new location, value, and width
             [new_location, new_value, new_width, error_coeff] = ...
                 generate_new_peak(locations(pairs(i, 1)), split, ...
-                tolerance, signal, raw, x, updated_locations, proms(pairs(i, 1)));
+                tolerance, signal, raw, freq, updated_locations, method);
 
             if new_location == -1
                 % No valid pair found, peak should be deleted
@@ -205,116 +206,6 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
                 end
         end
     end
-end
-
-function [new_location, new_value, new_width, error_coeff] = generate_new_peak(old_location, ...
-    split, tolerance, signal, raw, x, old_locs, old_prom)
-    % Generate a new peak location by getting all peaks in the area 
-    % and choosing the one closest to the ideal
-    % (after smoothing first, then without)
-    % new_location = old_location + 0.01e9; % Adjust the criteria as needed
-    % new_value = 2.7e4;
-    % new_width = 1e9;
-
-    error_coeff = 1;
-    region_center = 2 * split - old_location;
-    region_left = max([region_center - tolerance, x(1)]);
-    region_right = min([x(end), region_center + tolerance]);
-    region_indices = (x >= region_left) & (x <= region_right);
-    signal_cropped = signal(region_indices);
-    x_cropped = x(region_indices);
-    if isempty(x_cropped) || length(x_cropped) <= 3
-        new_location = -1;
-        new_value = -1;
-        new_width = -1;
-        return
-    end
-    threshold = -min(-signal_cropped);
-    
-    [vals, locs, widths, proms] = ...
-        findpeaks(-signal_cropped + threshold, x_cropped, ...
-                        'SortStr','descend',...
-                        'WidthReference','halfheight', ...
-                        'NPeaks',1);
-    vals = -vals + threshold;
-    [~, prom_index] = maxk(vals, 1);
-    vals = vals(prom_index);
-    locs = locs(prom_index);
-    widths = widths(prom_index);
-    proms = proms(prom_index);
-    [~, duplicate_index] = intersect(locs, old_locs);
-    locs(duplicate_index) = [];
-    vals(duplicate_index) = [];
-    widths(duplicate_index) = [];
-    proms(duplicate_index) = [];
-    % Consider lightly smoothed as per Fu's code
-    if isempty(locs)
-        error_coeff = 2;
-        raw_cropped = raw(region_indices);
-        z = smooth(raw_cropped, 'sgolay', 2);
-        [vals, locs, widths, proms] = ...
-            findpeaks(-z + threshold, x_cropped, ...
-                            'SortStr','descend',...
-                            'WidthReference','halfheight');
-        vals = -vals + threshold;
-        duplicate_index = find(locs == old_location);
-        locs(duplicate_index) = [];
-        vals(duplicate_index) = [];
-        widths(duplicate_index) = [];
-        proms(duplicate_index) = [];
-
-        % Consider raw
-        if isempty(locs)
-            error_coeff = 3;
-            [vals, locs, widths, proms] = ...
-                findpeaks(-raw_cropped + threshold, x_cropped, ...
-                                'SortStr','descend',...
-                                'WidthReference','halfheight');
-            vals = -vals + threshold;
-            duplicate_index = find(locs == old_location);
-            locs(duplicate_index) = [];
-            vals(duplicate_index) = [];
-            widths(duplicate_index) = [];
-            proms(duplicate_index) = [];
-
-            % Just keep on widening the threshold
-            % while isempty(locs)
-            %     threshold = threshold * 5;
-            %     [vals, locs, widths] = ...
-            %         findpeaks(-raw_cropped + threshold, x_cropped, ...
-            %                         'SortStr','descend',...
-            %                         'WidthReference','halfheight');
-            %     vals = -vals + threshold;
-            %     duplicate_index = find(locs == old_location);
-            %     locs(duplicate_index) = [];
-            %     vals(duplicate_index) = [];
-            %     widths(duplicate_index) = [];
-            % end
-        end
-        % figure
-        % hold on
-        % plot(x, raw, x_cropped, raw_cropped)
-        % plot(locs, vals, 'rv')
-        % hold off
-    end
-    if isempty(locs)
-        error_coeff = 4;
-        new_location = -1;
-        new_value = -1;
-        new_width = -1;
-    else
-        peaks_goodness = -(locs - region_center).^2;
-        [~, new_ind] = max(peaks_goodness);
-        new_location = locs(new_ind);
-        new_value = vals(new_ind);
-        new_width = widths(new_ind);
-    end
-
-    % figure
-    % hold on
-    % plot(x, raw)
-    % plot(locs(new_ind), vals(new_ind), 'rv')
-    % hold off
 end
 
 function sorted_array = insert_sorted(array, new_element, idx)

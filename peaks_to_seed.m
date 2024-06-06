@@ -11,14 +11,15 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
         % peaks_111 = pairs(1, :);
         % peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
         peak_height_sums = max([vals(pairs(:, 1)), vals(pairs(:, 2))]);
-        [~, peaks_non111_ind] = max(peak_height_sums);
-        peaks_111 = pairs(peaks_non111_ind, :);
+        [~, peaks_111_ind] = max(peak_height_sums);
+        peaks_111 = pairs(peaks_111_ind, :);
+
         try
-        peaks_111_locs = [locs(peaks_111(1)), locs(peaks_111(2))];
-        peaks_111_vals = [vals(peaks_111(1)), vals(peaks_111(2))];
-        peaks_111_fwhm = [widths(peaks_111(1)), widths(peaks_111(2))];
-        peaks_111_cont = [(peaks_111_vals(1) - baseline) / baseline, (peaks_111_vals(2) - baseline) / baseline];
-        peaks_111_stds = peaks_111_fwhm ./ (2 * sqrt(2 * log(2))); % assuming Gaussian
+            peaks_111_locs = [locs(peaks_111(1)), locs(peaks_111(2))];
+            peaks_111_vals = [vals(peaks_111(1)), vals(peaks_111(2))];
+            peaks_111_fwhm = [widths(peaks_111(1)), widths(peaks_111(2))];
+            peaks_111_cont = [(peaks_111_vals(1) - baseline) / baseline, (peaks_111_vals(2) - baseline) / baseline];
+            peaks_111_stds = peaks_111_fwhm ./ (2 * sqrt(2 * log(2))); % assuming Gaussian
         catch
             disp("Seed")
             disp(pairs)
