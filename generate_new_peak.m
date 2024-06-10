@@ -50,7 +50,7 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         if numel(locs) == 2
             contrast = abs(vals - baseline) ./ baseline;
             if abs(vals(1) - vals(2)) < 2
-                if contrast(1) > 0.5e-4 && contrast(2) > 0.5e-4
+                if contrast(1) > 0.003 && contrast(2) > 0.5e-4
                     failure = true;
                 end
             else

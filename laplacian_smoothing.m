@@ -67,10 +67,8 @@ function parameters_dataframe = laplacian_smoothing(input_params, signal, freq, 
             % end
         end
     end
-    whos parameters_dataframe
     parameters_dataframe(:, :, end + 1) = output; 
-    whos parameters_dataframe
-
+    
     if display
         figure;
         subplot(2, 3, 1);
