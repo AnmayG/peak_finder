@@ -12,7 +12,7 @@ function [locs, vals, widths, index_pairs, error_coeff]...
 
     % Check to see if a real partner peak exists by looking in the possible
     % physical interval
-    [vals, sorted_indices] = sort(vals); % Sort peaks from left to right
+    [vals, sorted_indices] = sort(vals); % Sort peaks from highest to lowest
     sorted_indices = sorted_indices';
     locs = locs(sorted_indices); % Rearrange vals and widths accordingly
     widths = widths(sorted_indices);
@@ -59,7 +59,6 @@ function [locs, vals, widths, index_pairs, error_coeff]...
             break;
         end
     end
-
     [locs, vals, widths, index_pairs, error_coeff] = ...
         add_new_peak(locs', vals, widths', proms', index_pairs, ...
         split, tolerance, signal, raw, freq, method);

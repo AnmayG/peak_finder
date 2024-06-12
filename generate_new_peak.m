@@ -37,6 +37,23 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         % locs = locs(prom_index);
         % widths = widths(prom_index);
         % proms = proms(prom_index);
+
+        % if numel(locs) < num_max_peaks
+            upper_peak_threshold = prctile(signal_cropped, 90); % Top X%
+            contrast = (max(signal_cropped) - baseline) / baseline;
+            if contrast > 0.002 % Positive contrast detected
+                [vals2, locs_peaks2, widths2, prominences2] = findpeaks(signal_cropped - upper_peak_threshold, x_cropped, ...
+                                    'SortStr','descend',...
+                                    'WidthReference','halfheight', ...
+                                    'NPeaks', 1);
+                vals2 = vals2 + upper_peak_threshold;
+                
+                vals = [vals; vals2];
+                locs = [locs, locs_peaks2];
+                widths = [widths, widths2];
+                proms = [proms; prominences2];
+            end
+        % end
     
         % Duplicates from already found peaks are removed
         [~, duplicate_index] = intersect(locs, old_locs);
@@ -50,7 +67,7 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         if numel(locs) == 2
             contrast = abs(vals - baseline) ./ baseline;
             if abs(vals(1) - vals(2)) < 2
-                if contrast(1) > 0.003 && contrast(2) > 0.5e-4
+                if contrast(1) > 0.3e-3 && contrast(2) > 0.3e-3
                     failure = true;
                 end
             else

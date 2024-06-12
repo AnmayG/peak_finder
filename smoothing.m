@@ -12,7 +12,7 @@ function parameters_dataframe = smoothing(parameters_dataframe, method)
     elseif method == 4
         % Gaussian
         for index = 1:size(parameters_dataframe, 3)
-            parameters_dataframe(:, :, index) = imgaussfilt(parameters_dataframe(:, :, index), 2);
+            parameters_dataframe(:, :, index) = imgaussfilt(parameters_dataframe(:, :, index), 3);
         end
     end
 end

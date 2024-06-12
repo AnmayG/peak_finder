@@ -28,7 +28,7 @@ function [transform, refFrame, success] = align_images(fixed_data, moving_data, 
 
     try
         [transform, inlierIdx] = ...    
-            es,tgeotform2d(matchedPtsDistorted,matchedPtsOriginal,...    
+            estgeotform2d(matchedPtsDistorted,matchedPtsOriginal,...    
                 'affine');
     catch ME
         report = getReport(ME);
@@ -42,6 +42,7 @@ function [transform, refFrame, success] = align_images(fixed_data, moving_data, 
     refFrame = imref2d(size(fixed_data));
     inlierPtsDistorted = matchedPtsDistorted(inlierIdx,:);
     inlierPtsOriginal  = matchedPtsOriginal(inlierIdx,:);
+
 
     if display
         display_images(fixed_data, moving_data, transform, refFrame, ...
@@ -87,7 +88,7 @@ function display_images(fixed_data, moving_data, transform, refFrame, ...
         
         disp(invert(transform))
         subplot(2, 3, 6)
-        bar3(inv(transform.A) - transform.A')
+        bar3(inv(transform.A) * transform.A' - eye(3))
         title("Affine Transformation Matrix - Goodness: " + det( ...
             transform.A))
     end

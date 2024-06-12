@@ -10,10 +10,9 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
     if ~isempty(pairs)
         % peaks_111 = pairs(1, :);
         % peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
-        peak_height_sums = max([vals(pairs(:, 1)), vals(pairs(:, 2))]);
-        [~, peaks_111_ind] = max(peak_height_sums);
+        peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
+        [~, peaks_111_ind] = min(peak_height_sums);
         peaks_111 = pairs(peaks_111_ind, :);
-
         try
             peaks_111_locs = [locs(peaks_111(1)), locs(peaks_111(2))];
             peaks_111_vals = [vals(peaks_111(1)), vals(peaks_111(2))];
@@ -32,22 +31,24 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
         parameters(5) = peaks_111_cont(1) + peaks_111_cont(2); % Average height
         parameters(6) = (peaks_111_cont(2) - peaks_111_cont(1)) / 2; % Deviation
         
-        pairs(1) = [];
-        peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
-        [~, peaks_non111_ind] = max(peak_height_sums);
-        peaks_non111 = pairs(peaks_non111_ind, :);
-        peaks_non111_locs = [locs(peaks_non111(1)), locs(peaks_non111(2))];
-        peaks_non111_vals = [vals(peaks_non111(1)), vals(peaks_non111(2))];
-        peaks_non111_fwhm = [widths(peaks_non111(1)), widths(peaks_non111(2))];
-        peaks_non111_cont = [(peaks_non111_vals(1) - baseline) / baseline, (peaks_non111_vals(2) - baseline) / baseline];
-        peaks_non111_stds = peaks_non111_fwhm ./ (2 * sqrt(2 * log(2))); % assuming Gaussian
-
-        parameters(7) = (peaks_non111_locs(1) + peaks_non111_locs(2)) / 2; % Average split
-        parameters(8) = abs(peaks_non111_locs(2) - peaks_non111_locs(1)) / 2; % Deviation
-        parameters(9) = (peaks_non111_stds(1) + peaks_non111_stds(2)) / 2; % Average width
-        parameters(10) = abs(peaks_non111_stds(1) - peaks_non111_stds(2)) / 2; % Deviation
-        parameters(11) = peaks_non111_cont(1) + peaks_non111_cont(2); % Average height
-        parameters(12) = (peaks_non111_cont(2) - peaks_non111_cont(1)) / 2; % Deviation
+        pairs(peaks_111) = [];
+        if ~isempty(pairs)
+            peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
+            [~, peaks_non111_ind] = min(peak_height_sums);
+            peaks_non111 = pairs(peaks_non111_ind, :);
+            peaks_non111_locs = [locs(peaks_non111(1)), locs(peaks_non111(2))];
+            peaks_non111_vals = [vals(peaks_non111(1)), vals(peaks_non111(2))];
+            peaks_non111_fwhm = [widths(peaks_non111(1)), widths(peaks_non111(2))];
+            peaks_non111_cont = [(peaks_non111_vals(1) - baseline) / baseline, (peaks_non111_vals(2) - baseline) / baseline];
+            peaks_non111_stds = peaks_non111_fwhm ./ (2 * sqrt(2 * log(2))); % assuming Gaussian
+    
+            parameters(7) = (peaks_non111_locs(1) + peaks_non111_locs(2)) / 2; % Average split
+            parameters(8) = abs(peaks_non111_locs(2) - peaks_non111_locs(1)) / 2; % Deviation
+            parameters(9) = (peaks_non111_stds(1) + peaks_non111_stds(2)) / 2; % Average width
+            parameters(10) = abs(peaks_non111_stds(1) - peaks_non111_stds(2)) / 2; % Deviation
+            parameters(11) = peaks_non111_cont(1) + peaks_non111_cont(2); % Average height
+            parameters(12) = (peaks_non111_cont(2) - peaks_non111_cont(1)) / 2; % Deviation
+        end
 
         parameters(13) = baseline;
 
