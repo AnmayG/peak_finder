@@ -1,6 +1,6 @@
 function [locs, vals, widths, index_pairs, error_coeff]...
           = partner_peak(locs, ...,
-                         split, ...
+                         centers, ...
                          tolerance, ...
                          signal, ...
                          threshold, ...
@@ -17,11 +17,13 @@ function [locs, vals, widths, index_pairs, error_coeff]...
     locs = locs(sorted_indices); % Rearrange vals and widths accordingly
     widths = widths(sorted_indices);
     proms = proms(sorted_indices);
+    centers = centers(sorted_indices); % Rearrange calculated ideal centers
 
     goodness_matrix = zeros(length(sorted_indices), length(sorted_indices)); % Adjacency matrix between peaks for matching
     for i = sorted_indices % conventional indexes still work!
         peak = locs(i);
-        peak_goodness = partner_peak_vector(peak, locs, split, tolerance);
+        ideal_center = centers(i);
+        peak_goodness = partner_peak_vector(peak, locs, ideal_center, tolerance);
         goodness_matrix(i, :) = peak_goodness;
     end
 
@@ -61,7 +63,7 @@ function [locs, vals, widths, index_pairs, error_coeff]...
     end
     [locs, vals, widths, index_pairs, error_coeff] = ...
         add_new_peak(locs', vals, widths', proms', index_pairs, ...
-        split, tolerance, signal, raw, freq, method);
+        centers, tolerance, signal, raw, freq, method);
 
     if display
         figure
@@ -83,9 +85,9 @@ function [locs, vals, widths, index_pairs, error_coeff]...
                 text(peak_partner + 0.02e9,second_height,num2str(i))
                 text(peak + 0.02e9,init_height,num2str(i))
     
-                xline(split, 'LineWidth', 2)
+                % xline(reflectio, 'LineWidth', 2)
                 if i == 1
-                    center = 2 * split - peak;
+                    center = centers(index_pairs(i, 1));
                     xline(peak)
                     xline(center)
                     xregion(center - tolerance, center + tolerance, 'FaceColor', color)
@@ -115,10 +117,10 @@ end
 % peaks and thus should be ignored, but these would ideally come with a warning of some kind)
 function [peaks_goodness] = partner_peak_vector(peak_loc, ...
                                                 locs, ...
-                                                split, ...
+                                                phantom_peak_center, ...
                                                 tolerance)
     % Calculate the range of values that a peak can physically exist
-    phantom_peak_center = 2 * split - peak_loc; % ideal partner location
+    % phantom_peak_center = 2 * reflectio - peak_loc; % ideal partner location
     phantom_peak_left = phantom_peak_center - tolerance;
     phantom_peak_right = phantom_peak_center + tolerance;
     % Iterate through all of the peaks and find "goodness" for each one
@@ -135,7 +137,7 @@ function [peaks_goodness] = partner_peak_vector(peak_loc, ...
 end
 
 function [updated_locations, updated_values, updated_widths, updated_pairs, error_coeff] = ...
-    add_new_peak(locations, values, widths, proms, pairs, split, tolerance, signal, raw, freq, method)
+    add_new_peak(locations, values, widths, proms, pairs, centers, tolerance, signal, raw, freq, method)
     % Initialize updated arrays with the original lists
     updated_locations = locations;
     updated_values = values;
@@ -148,8 +150,12 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
     for i = 1:size(pairs, 1)
         if pairs(i, 1) == pairs(i, 2)
             % Self-pair found, generate new location, value, and width
+
+            % ideal_center = 2 * reflectio - locations(pairs(i, 1));
+            ideal_center = centers(pairs(i, 1));
+
             [new_location, new_value, new_width, error_coeff] = ...
-                generate_new_peak(locations(pairs(i, 1)), split, ...
+                generate_new_peak(locations(pairs(i, 1)), ideal_center, ...
                 tolerance, signal, raw, freq, updated_locations, method);
 
             if new_location == -1

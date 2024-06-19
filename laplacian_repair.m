@@ -8,56 +8,33 @@
 % us how wrong the guess is according to continuity, so by minimizing the
 % Laplacian we can get some
 
-function [parameters_dataframe, lapl_thresholds] = laplacian_smoothing(input_params, lock, display)
-    if nargin < 3
-        display = false;
-    end
+function [parameters_dataframe, thresh] = laplacian_repair(use_splitting, lock, input_params, data, freq, splits, tolerance, num_max_peaks, ...
+                            peak_perc_threshold, diff_peak_distance, smooth_span, smooth_degree, seed_method, display)
     parameters_dataframe = input_params;
+    lpeak = squeeze(input_params(:, :, 15)) / 1e6;
+    rpeak = squeeze(input_params(:, :, 16)) / 1e6;
     tries = squeeze(input_params(:, :, 14));
 
     e111 = squeeze(parameters_dataframe(:, :, 2));
-    e111 = e111 ./ 1e6;
-    laplacian = del2(e111);
-    output = zeros(size(laplacian, 1), size(laplacian, 2));
-    perc_thresholds = [12, 34, 68, 88];
-    if lock ~= 0 % Lock should be 0 if it doesn't exist
-        disp(lock)
-        lapl_thresholds = lock;
-    else
-        lapl_thresholds = prctile(laplacian, perc_thresholds, 'all');
-    end
+    laplacian = squeeze(parameters_dataframe(:, :, 17));
 
     xsize = size(laplacian, 2);
     ysize = size(laplacian, 1);
+    if isscalar(splits)
+        splits = splits * ones(xsize, ysize);
+    end
+
     for x=1:xsize
         for y=1:ysize
-            lapl = laplacian(x, y);
-            if lapl < lapl_thresholds(1) % Under 5%
-                % Harsh fix, splittings are too close
-                % Complete failure to fit, mark it red
-                output(x, y) = 1;
-            elseif lapl < lapl_thresholds(2) % 5-34%
-                % Medium increase
-                output(x, y) = 0;
-            elseif lapl < lapl_thresholds(3) % 34-68%
-                % Good enough/slight fix
-                output(x, y) = 0;
-            elseif lapl < lapl_thresholds(4) % 68-95%
-                % Medium decrease
-                output(x, y) = 0;
-            else % Over 5%
-                % Harsh fix, splittings are too far
-                % Complete failure to fit, mark it red
-                output(x, y) = 1;
+            if laplacian(y, x) == 1 % If flagged by laplacian
+                split = splits(y, x);
+                parameters_dataframe(y, x, 1:16) = peak_find_function(use_splitting, split, ...
+                    tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
+                    diff_peak_distance, smooth_span, smooth_degree, 3, seed_method); % Reseed with closest
             end
         end
     end
-
-    % Fill in the gaps
-    se = strel("disk", 1);
-    output = imclose(output, se);
-    output = imfill(output, 8);
-    parameters_dataframe(:, :, 17) = output;
+    [parameters_dataframe, thresh] = laplacian_smoothing(parameters_dataframe, lock, false);
     
     if display
         figure;

@@ -1,5 +1,5 @@
 function [new_location, new_value, new_width, error_coeff] = generate_new_peak(old_location, ...
-    split, tolerance, signal, raw, freq, old_locs, method)
+    region_center, tolerance, signal, raw, freq, old_locs, method)
     % Generate a new peak location by getting all peaks in the area 
     % and choosing the one closest to the ideal
     % (after smoothing first, then without)
@@ -8,7 +8,7 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
     % new_width = 1e9;
 
     error_coeff = 1;
-    region_center = 2 * split - old_location;
+    % region_center = 2 * reflection - old_location;
     region_left = max([region_center - tolerance, freq(1)]);
     region_right = min([freq(end), region_center + tolerance]);
     region_indices = (freq >= region_left) & (freq <= region_right);
@@ -112,12 +112,23 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         locs = locs(prom_index);
         widths = widths(prom_index);
         proms = proms(prom_index);
+        
+        [~, duplicate_index] = intersect(locs, old_locs);
+        locs(duplicate_index) = [];
+        vals(duplicate_index) = [];
+        widths(duplicate_index) = [];
+        proms(duplicate_index) = [];
     elseif method == 3 % Highest goodness
-        [vals, locs, widths, ~] = ...
+        [vals, locs, widths, proms] = ...
             findpeaks(-signal_cropped + threshold, x_cropped, ...
                             'SortStr','descend',...
                             'WidthReference','halfheight');
         vals = -vals + threshold; % flip it back
+        [~, duplicate_index] = intersect(locs, old_locs);
+        locs(duplicate_index) = [];
+        vals(duplicate_index) = [];
+        widths(duplicate_index) = [];
+        proms(duplicate_index) = [];
     elseif method == 4 % Immediately average
         y_data = -signal_cropped + threshold;
         [vals, locs, widths, proms] = ...

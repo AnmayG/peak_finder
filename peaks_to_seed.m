@@ -1,5 +1,8 @@
 function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
-    baseline, error_coeff)
+    baseline, error_coeff, method, guess)
+    if nargin < 7
+        method = 1;
+    end
     % Naive, remove duplicates
     duplicates = pairs(pairs(:, 1) == pairs(:, 2));
     pairs(duplicates, :) = [];
@@ -10,9 +13,21 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
     if ~isempty(pairs)
         % peaks_111 = pairs(1, :);
         % peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2));
-        peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
+        if method == 1
+            peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
+        elseif method == 2
+            peak_height_sums = min(locs(pairs(:, 1)), locs(pairs(:, 2))); % leftmost => outermost
+        elseif method == 3 % closest to guess
+            peak_height_sums = (locs(pairs(:, 1)) + locs(pairs(:, 2))) / 2; % Get the shift
+            peak_height_sums = abs(peak_height_sums - guess); % Distance from guessed centers
+        elseif method == 4
+            peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2)); % tallest average
+        else
+            peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
+        end
         [~, peaks_111_ind] = min(peak_height_sums);
         peaks_111 = pairs(peaks_111_ind, :);
+        
         try
             peaks_111_locs = [locs(peaks_111(1)), locs(peaks_111(2))];
             peaks_111_vals = [vals(peaks_111(1)), vals(peaks_111(2))];
