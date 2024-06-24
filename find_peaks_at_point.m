@@ -1,25 +1,20 @@
-function [vals, locs, widths, proms, peak_threshold, z, raw, error] = ...
-    find_peaks_at_point(y, x, data, freq, display, num_max_peaks, peak_perc_threshold, ...
-    diff_peak_distance, smooth_span, smooth_degree)
-        if nargin < 5 % Don't need to include display if not necessary
+function [vals, locs, widths, proms, peak_threshold, error] = ...
+    find_peaks_at_point(z, freq, display, num_max_peaks, peak_perc_threshold, ...
+    diff_peak_distance)
+        if nargin < 3 % Don't need to include display if not necessary
             display = false;
             num_max_peaks = 2;
             % Previously 32%
             peak_perc_threshold = 5;
             diff_peak_distance = 0.02e9;
-            smooth_span = 41;
-            smooth_degree = 7;
         end
         error = 0;
-
-        raw = squeeze(data(x, y, :));
         % Chop off the ends to minimize chance of badness happening - plus
         % peaks shouldn't be there anyways
         x_bounds = (freq > freq(1) + diff_peak_distance) & (freq < freq(end) - diff_peak_distance);
-        z = smooth(raw, smooth_span, 'sgolay', smooth_degree);
-
+        
         peak_threshold = prctile(z, peak_perc_threshold);
-        [vals, locs, widths, proms] = findpeaks(max(-z(x_bounds) + peak_threshold, 0), freq(x_bounds), ...
+        [vals, locs, widths, proms] = findpeaks_custom(max(-z(x_bounds) + peak_threshold, 0), freq(x_bounds), ...
                             'SortStr','descend',...
                             'WidthReference','halfheight', ...
                             'NPeaks', num_max_peaks, ...,

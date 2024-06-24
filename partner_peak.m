@@ -10,17 +10,8 @@ function [locs, vals, widths, index_pairs, error_coeff]...
         display = false;
     end
 
-    % Check to see if a real partner peak exists by looking in the possible
-    % physical interval
-    [vals, sorted_indices] = sort(vals); % Sort peaks from highest to lowest
-    sorted_indices = sorted_indices';
-    locs = locs(sorted_indices); % Rearrange vals and widths accordingly
-    widths = widths(sorted_indices);
-    proms = proms(sorted_indices);
-    centers = centers(sorted_indices); % Rearrange calculated ideal centers
-
-    goodness_matrix = zeros(length(sorted_indices), length(sorted_indices)); % Adjacency matrix between peaks for matching
-    for i = sorted_indices % conventional indexes still work!
+    goodness_matrix = zeros(length(locs), length(locs)); % Adjacency matrix between peaks for matching
+    for i = 1:length(locs) % conventional indexes still work!
         peak = locs(i);
         ideal_center = centers(i);
         peak_goodness = partner_peak_vector(peak, locs, ideal_center, tolerance);
@@ -137,7 +128,7 @@ function [peaks_goodness] = partner_peak_vector(peak_loc, ...
 end
 
 function [updated_locations, updated_values, updated_widths, updated_pairs, error_coeff] = ...
-    add_new_peak(locations, values, widths, proms, pairs, centers, tolerance, signal, raw, freq, method)
+    add_new_peak(locations, values, widths, ~, pairs, centers, tolerance, signal, raw, freq, method)
     % Initialize updated arrays with the original lists
     updated_locations = locations;
     updated_values = values;

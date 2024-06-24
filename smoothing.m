@@ -16,6 +16,14 @@ function parameters_dataframe = smoothing(parameters_dataframe, method)
             df(isnan(df)) = 0;
             parameters_dataframe(:, :, index) = imgaussfilt(df, 3);
         end
+    elseif method == 5
+        % Spatially variant Laplacian blur
+        for index = 1:size(parameters_dataframe, 3)
+            df = parameters_dataframe(:, :, index);
+            df(isnan(df)) = 0;
+            
+            parameters_dataframe(:, :, index) = imgaussfilt(df, 3);
+        end
     end
 end
 

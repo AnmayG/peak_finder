@@ -11,8 +11,8 @@
 function [parameters_dataframe, thresh] = laplacian_repair(use_splitting, lock, input_params, data, freq, splits, tolerance, num_max_peaks, ...
                             peak_perc_threshold, diff_peak_distance, smooth_span, smooth_degree, seed_method, display)
     parameters_dataframe = input_params;
-    lpeak = squeeze(input_params(:, :, 15)) / 1e6;
-    rpeak = squeeze(input_params(:, :, 16)) / 1e6;
+    % lpeak = squeeze(input_params(:, :, 15)) / 1e6;
+    % rpeak = squeeze(input_params(:, :, 16)) / 1e6;
     tries = squeeze(input_params(:, :, 14));
 
     e111 = squeeze(parameters_dataframe(:, :, 2));
@@ -24,13 +24,13 @@ function [parameters_dataframe, thresh] = laplacian_repair(use_splitting, lock, 
         splits = splits * ones(xsize, ysize);
     end
 
-    for x=1:xsize
+    parfor x=1:xsize
         for y=1:ysize
             if laplacian(y, x) == 1 % If flagged by laplacian
                 split = splits(y, x);
-                parameters_dataframe(y, x, 1:16) = peak_find_function(use_splitting, split, ...
+                parameters_dataframe(y, x, :) = [peak_find_function(use_splitting, split, ...
                     tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
-                    diff_peak_distance, smooth_span, smooth_degree, 3, seed_method); % Reseed with closest
+                    diff_peak_distance, smooth_span, smooth_degree, 3, seed_method); 0]; % Reseed with closest
             end
         end
     end

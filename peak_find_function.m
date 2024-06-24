@@ -1,5 +1,6 @@
-function seed = peak_find_function(use_splitting, split, tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
-    diff_peak_distance, smooth_span, smooth_degree, method, seed_method)
+function [seed, threshold, pairs, new_locs, new_vals, centers, locs, vals] = ...
+    peak_find_function(use_splitting, split, tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
+        diff_peak_distance, smooth_span, smooth_degree, method, seed_method)
         if nargin < 8
             num_max_peaks = 2;
             peak_perc_threshold = 5;
@@ -8,21 +9,28 @@ function seed = peak_find_function(use_splitting, split, tolerance, x, y, data, 
             smooth_degree = 7;
         end
 
-        [vals, locs, widths, proms, threshold, signal, raw, error] = find_peaks_at_point(y, x, data, freq, ...
-            false, num_max_peaks, peak_perc_threshold, diff_peak_distance, ...
-            smooth_span, smooth_degree);
-        
+        raw = squeeze(data(x, y, :));
+        signal = smooth(raw, smooth_span, 'sgolay', smooth_degree);
+        [vals, locs, widths, proms, threshold, error] = find_peaks_at_point(signal, freq, ...
+            false, num_max_peaks, peak_perc_threshold, diff_peak_distance);
+ 
+        % Sort peaks from highest to lowest
+        [vals, sorted_indices] = sort(vals);
+        sorted_indices = sorted_indices';
+        locs = locs(sorted_indices); % Rearrange accordingly
+        widths = widths(sorted_indices);
+        proms = proms(sorted_indices);
         centers = get_centers(locs, freq, split, use_splitting);
 
-        [sorted_locs, sorted_vals, sorted_widths, pairs, error_coeff] = ...
+        [new_locs, new_vals, new_widths, pairs, error_coeff] = ...
             partner_peak(locs, centers, tolerance, signal, threshold, freq, ...
                 vals, widths, proms, method, false, raw);
 
-        centers = get_centers(sorted_locs, freq, split, use_splitting);
+        % Get new centers with new locations
+        centers = get_centers(new_locs, freq, split, use_splitting);
         baseline = find_baseline(y, x, data, freq);
-        seed = peaks_to_seed(sorted_locs, sorted_vals, sorted_widths, pairs, ...
+        seed = peaks_to_seed(new_locs, new_vals, new_widths, pairs, ...
             baseline, error_coeff + error, seed_method, centers);
-        % parameters_dataframe(y, x, :) = seed;
 end
 
 function centers = get_centers(locs, freq, split, use_splitting)
