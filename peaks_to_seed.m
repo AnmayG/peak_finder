@@ -27,14 +27,12 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
             disp("Seed")
             disp(pairs)
         end
-
+        
         parameters(1) = (peaks_111_locs(1) + peaks_111_locs(2)) / 2; % Average split
         parameters(2) = abs(peaks_111_locs(2) - peaks_111_locs(1)) / 2; % Deviation
         parameters(3) = (peaks_111_stds(1) + peaks_111_stds(2)) / 2; % Average width
         parameters(4) = abs(peaks_111_stds(1) - peaks_111_stds(2)) / 2; % Deviation
-        % parameters(5) = peaks_111_cont(1) + peaks_111_cont(2); % Average height
-        parameters(5) = min(peaks_111_cont); % Average height
-        
+        parameters(5) = peaks_111_cont(1) + peaks_111_cont(2); % Average height
         parameters(6) = (peaks_111_cont(2) - peaks_111_cont(1)) / 2; % Deviation
         
         pairs(peaks_111, :) = [];
@@ -75,8 +73,6 @@ function peak_height_sums = decide_peaks(locs, vals, pairs, guess, method)
     elseif method == 2
         peak_height_sums = min(locs(pairs(:, 1)), locs(pairs(:, 2))); % leftmost => outermost
     elseif method == 3 % closest to guess
-        disp(pairs)
-        disp(locs)
         peak_height_sums = (locs(pairs(:, 1)) + locs(pairs(:, 2))) / 2; % Get the shift
         peak_height_sums = abs(peak_height_sums - guess); % Distance from guessed centers
     elseif method == 4
