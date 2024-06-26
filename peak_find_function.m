@@ -1,15 +1,24 @@
 function [seed, threshold, pairs, new_locs, new_vals, centers, locs, vals] = ...
     peak_find_function(use_splitting, split, tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
-        diff_peak_distance, smooth_span, smooth_degree, method, seed_method)
+        diff_peak_distance, smooth_span, smooth_degree, method, seed_method, normalize)
+        if nargin < 15
+            normalize = false;
+        end
         if nargin < 8
             num_max_peaks = 2;
             peak_perc_threshold = 5;
             diff_peak_distance = 0.002;
             smooth_span = 41;
             smooth_degree = 7;
+            method = 1;
+            seed_method = 1;
         end
 
         raw = squeeze(data(x, y, :));
+        if normalize
+            raw=raw-mean(raw);
+            raw=raw/std(raw);
+        end
         signal = smooth(raw, smooth_span, 'sgolay', smooth_degree);
         [vals, locs, widths, proms, threshold, error] = find_peaks_at_point(signal, freq, ...
             false, num_max_peaks, peak_perc_threshold, diff_peak_distance);

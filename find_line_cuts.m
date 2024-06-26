@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = find_line_cuts(data, val, dir)
+function find_line_cuts(data, val, dir)
     if strcmp(dir, "Vertical")
         data=squeeze(data(val, :, :));
     elseif strcmp(dir, "Horizontal")
@@ -6,33 +6,48 @@ function [outputArg1,outputArg2] = find_line_cuts(data, val, dir)
     else
         data=squeeze(data(:, val, :));
     end
-    % Normalize data
+    % Normalize data so linecuts can actually be taken
     for i=1:size(data,1)
         data(i,:)=data(i,:)-mean(data(i,:));
         data(i,:)=data(i,:)/std(data(i,:));
     end
-    % data(data > 0) = 0;
-    % data = normalize(data);
-    data = data;
+    for xsmooth=1:size(data, 1)
+        data(xsmooth, :) = smooth(data(xsmooth, :), 41, 'sgolay', 7);
+    end
+    % data = data;
 
     % Take data and convert it to a black and white image
     figure;
-    subplot(1, 3, 2);
-    imagesc(imbinarize(data, adaptthresh(data, 0.5, "ForegroundPolarity","dark")));
-    ylim([1 size(data,1)]);
-    ylabel('Pixel');
-    ax = gca;
-    ax.YDir = 'reverse';
-
-    subplot(1, 3, 1);    
+    subplot(1, 4, 1);    
     imagesc(data);
     ylim([1 size(data,1)]);
     ylabel('Pixel');
     ax = gca;
     ax.YDir = 'reverse';
-    colorbar;
 
-    subplot(1, 3, 3);
+    subplot(1, 4, 2);
+    T = imbinarize(data, adaptthresh(data, 0.5, "ForegroundPolarity","bright"));
+    imagesc(T);
+    ylim([1 size(data,1)]);
+    ylabel('Pixel');
+    ax = gca;
+    ax.YDir = 'reverse';
+
+    subplot(1, 4, 3);
+    T = medfilt2(T);
+    % T = bwareaopen(T, 1000, 8);
+    % T = imfill(T, 'holes');
+    % T = imcomplement(T);
+    % T = bwareaopen(T, 1000, 8);
+    % T = imfill(T, 'holes');
+    % T = imcomplement(T);
+    imagesc(T);
+    ylim([1 size(data,1)]);
+    ylabel('Pixel');
+    ax = gca;
+    ax.YDir = 'reverse';
+
+    subplot(1, 4, 4);
     colormap gray;
     disp(graythresh(data))
     T = edge(data, 'log');
