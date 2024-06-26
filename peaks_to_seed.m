@@ -68,15 +68,22 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
 end
 
 function peak_height_sums = decide_peaks(locs, vals, pairs, guess, method)
-    if method == 1
-        peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
-    elseif method == 2
-        peak_height_sums = min(locs(pairs(:, 1)), locs(pairs(:, 2))); % leftmost => outermost
+    if method == 1 % Tallest single
+        peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2)));
+    elseif method == 2 % Leftmost
+        peak_height_sums = min(locs(pairs(:, 1)), locs(pairs(:, 2)));
     elseif method == 3 % closest to guess
         peak_height_sums = (locs(pairs(:, 1)) + locs(pairs(:, 2))) / 2; % Get the shift
         peak_height_sums = abs(peak_height_sums - guess); % Distance from guessed centers
-    elseif method == 4
+    elseif method == 4 % Tallest avg
         peak_height_sums = vals(pairs(:, 1)) + vals(pairs(:, 2)); % tallest average
+    elseif method == 5 % Rightmost
+        peak_height_sums = -max(locs(pairs(:, 1)), locs(pairs(:, 2)));
+    elseif method == 6 % Tallest out
+        [~, leftmost] = min(min(locs(pairs(:, 1)), locs(pairs(:, 2))));
+        [~, rightmost] = max(max(locs(pairs(:, 1)), locs(pairs(:, 2))));
+        outermost = [leftmost, rightmost];
+        peak_height_sums = vals(pairs(outermost, 1)) + vals(pairs(outermost, 2));
     else
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
     end
