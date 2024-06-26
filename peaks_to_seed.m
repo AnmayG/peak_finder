@@ -82,8 +82,10 @@ function peak_height_sums = decide_peaks(locs, vals, pairs, guess, method)
     elseif method == 6 % Tallest out
         [~, leftmost] = min(min(locs(pairs(:, 1)), locs(pairs(:, 2))));
         [~, rightmost] = max(max(locs(pairs(:, 1)), locs(pairs(:, 2))));
-        outermost = [leftmost, rightmost];
-        peak_height_sums = min(vals(pairs(outermost, 1)), vals(pairs(outermost, 2)));
+        outermost = [leftmost; rightmost];
+        vals(setdiff(1:end, outermost)) = Inf;
+        peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2)));
+        disp(peak_height_sums)
     else
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
     end
