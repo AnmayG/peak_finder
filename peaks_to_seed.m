@@ -32,7 +32,7 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
         parameters(2) = abs(peaks_111_locs(2) - peaks_111_locs(1)) / 2; % Deviation
         parameters(3) = (peaks_111_stds(1) + peaks_111_stds(2)) / 2; % Average width
         parameters(4) = abs(peaks_111_stds(1) - peaks_111_stds(2)) / 2; % Deviation
-        parameters(5) = peaks_111_cont(1) + peaks_111_cont(2); % Average height
+        parameters(5) = (peaks_111_cont(1) + peaks_111_cont(2)) / 2; % Average height
         parameters(6) = (peaks_111_cont(2) - peaks_111_cont(1)) / 2; % Deviation
         
         pairs(peaks_111, :) = [];
