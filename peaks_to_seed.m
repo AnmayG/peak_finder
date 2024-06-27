@@ -16,6 +16,12 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
         peak_height_sums = decide_peaks(locs, vals, pairs, guess, method);
         [~, peaks_111_ind] = min(peak_height_sums);
         peaks_111 = pairs(peaks_111_ind, :);
+        % Locations should be sorted
+        if locs(peaks_111(1)) > locs(peaks_111(2))
+            peak1 = peaks_111(1);
+            peaks_111(1) = peaks_111(2);
+            peaks_111(2) = peak1;
+        end
         
         try
             peaks_111_locs = [locs(peaks_111(1)), locs(peaks_111(2))];
