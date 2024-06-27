@@ -20,6 +20,9 @@ function [vals, locs, widths, proms, peak_threshold, error] = ...
                             'NPeaks', num_max_peaks, ...,
                             'MinPeakDistance', diff_peak_distance);
         vals = -vals + peak_threshold;
+        % Somehow these get transposed idk why
+        vals = vals';
+        proms = proms';
         % Remove all peaks with abnormally low contrast
         % temp_baseline = mean(z(1:10)); % average of first 10 is a bad baseline, replace with something smarter later
         % contrasts = (vals - temp_baseline) ./ temp_baseline;

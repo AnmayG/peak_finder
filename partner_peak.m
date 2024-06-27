@@ -12,17 +12,15 @@ function [locs, vals, widths, index_pairs, error_coeff]...
     end
 
     goodness_matrix = zeros(length(locs), length(locs)); % Adjacency matrix between peaks for matching
-    for i = 1:length(locs) % conventional indexes still work!
-        peak = locs(i);
-        ideal_center = centers(i);
-        peak_goodness = partner_peak_vector(peak, locs, ideal_center, tolerance);
-        goodness_matrix(i, :) = peak_goodness;
+    for i = 1:length(locs)
+        goodness_matrix(i, :) = partner_peak_vector(locs(i), locs, centers(i), tolerance);
     end
 
     % we love chatgpt
     [num_rows, num_cols] = size(goodness_matrix);
     index_pairs = zeros(num_rows, 2);
     
+    % Transform the goodness matrix into a nice row-by-row format
     values_list = zeros(num_rows * num_cols, 3);
     ind = 1;
     for i = 1:num_rows
@@ -32,8 +30,11 @@ function [locs, vals, widths, index_pairs, error_coeff]...
             ind = ind + 1;
         end
     end
+
+    % Sort them so that the best ones are higher
     values_list = sortrows(values_list, -3);
     
+    % Assign rows by height
     assigned_rows = false(1, num_rows);
     assigned_cols = false(1, num_cols);
     assigned_count = 0;
@@ -53,9 +54,11 @@ function [locs, vals, widths, index_pairs, error_coeff]...
             break;
         end
     end
-    [locs, vals, widths, index_pairs, error_coeff] = ...
-        add_new_peak(locs', vals, widths', proms', index_pairs, ...
-        centers, tolerance, signal, raw, freq, method, min_dist);
+
+    error_coeff = 1;
+    % [locs, vals, widths, index_pairs, error_coeff] = ...
+    %     add_new_peak(locs, vals, widths, proms, index_pairs, ...
+    %     centers, tolerance, signal, raw, freq, method, min_dist);
 
     if display
         figure
@@ -77,20 +80,14 @@ function [locs, vals, widths, index_pairs, error_coeff]...
                 text(peak_partner + 0.02e9,second_height,num2str(i))
                 text(peak + 0.02e9,init_height,num2str(i))
     
-                % xline(reflectio, 'LineWidth', 2)
                 if i == 1
                     center = centers(index_pairs(i, 1));
                     xline(peak)
                     xline(center)
                     xregion(center - tolerance, center + tolerance, 'FaceColor', color)
-                    % center = 2 * split - peak_partner;
-                    % xline(center)
-                    % xregion(center - tolerance, center + tolerance, 'FaceColor', color)
                 end
             end
         end
-
-        % title(num2str(index_pairs(:, 2))')
         hold off
     end
 end
@@ -193,7 +190,7 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
         updated_values(i) = [];
         updated_widths(i) = [];
         updated_pairs(i, :) = [];
-        % Modify after delete,
+        % Modify after delete
         for j=1:size(updated_pairs, 1)
                 if updated_pairs(j, 1) >= i
                     updated_pairs(j, 1) = updated_pairs(j, 1) - 1;
@@ -206,9 +203,9 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
 end
 
 function sorted_array = insert_sorted(array, new_element, idx)
-    % Insert the new element while keeping the array sorted
+    % Insert the new element while keeping the array sorted    
     if isempty(idx)
-        sorted_array = [array; new_element]; % Add to the end
+        sorted_array = [array, new_element]; % Add to the end
     else
         sorted_array = [array(1:idx-1); new_element; array(idx:end)];
     end
@@ -221,16 +218,3 @@ function idx = find_insertion_index(locations, new_location)
         idx = size(locations, 1) + 1; % Add to the end
     end
 end
-
-% load('2p03GPa_14p9k_23db_39G.mat');
-% 
-% x_grid_width = 64;
-% y_grid_width = 64;
-% for x = randi([0, x_grid_width - 1], 1, 256 / x_grid_width) + (1:x_grid_width:256)
-%     for y = randi([0, y_grid_width - 1], 1, 256 / y_grid_width) + (1:y_grid_width:256)
-%         [vals, locs, widths, proms, threshold, signal] = find_peaks_at_point(x, y, gWide);
-%         split = 2.91e9;
-%         tolerance = 0.05e9;
-%         [index_pairs, sorted_locs, sorted_indices] = partner_peak2(locs, split, tolerance, false, signal, threshold, gWide, vals);
-%     end
-% end

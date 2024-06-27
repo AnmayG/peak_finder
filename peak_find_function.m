@@ -24,13 +24,15 @@ function [seed, threshold, pairs, new_locs, new_vals, centers, locs, vals] = ...
             false, num_max_peaks, peak_perc_threshold, diff_peak_distance);
  
         % Sort peaks from highest to lowest
-        [vals, sorted_indices] = sort(vals);
+        [~, sorted_indices] = sort(locs);
         sorted_indices = sorted_indices';
-        locs = locs(sorted_indices); % Rearrange accordingly
-        widths = widths(sorted_indices);
-        proms = proms(sorted_indices);
-        centers = get_centers(locs, freq, split, use_splitting);
+        locs = locs(sorted_indices)';
+        vals = vals(sorted_indices)'; % Rearrange accordingly
+        widths = widths(sorted_indices)';
+        proms = proms(sorted_indices)';
 
+        centers = get_centers(locs, freq, split, use_splitting);
+               
         [new_locs, new_vals, new_widths, pairs, error_coeff] = ...
             partner_peak(locs, centers, tolerance, signal, threshold, freq, diff_peak_distance, ...
                 vals, widths, proms, method, false, raw);
@@ -38,6 +40,11 @@ function [seed, threshold, pairs, new_locs, new_vals, centers, locs, vals] = ...
         % Get new centers with new locations
         centers = get_centers(new_locs, freq, split, use_splitting);
         baseline = find_baseline(y, x, data, freq);
+        
+        % Duplicates indicate mismatches
+        duplicates = pairs(pairs(:, 1) == pairs(:, 2));
+        pairs(duplicates, :) = [];
+        centers(duplicates) = [];
         seed = peaks_to_seed(new_locs, new_vals, new_widths, pairs, ...
             baseline, error_coeff + error, seed_method, centers);
 end
