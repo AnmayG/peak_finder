@@ -1,14 +1,20 @@
-function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
-    baseline, error_coeff, method, guess)
-    if nargin < 7
-        method = 1;
-    end
+function parameters = peaks_to_seed(peaks_info, params_struct)
+    % Prefer bundling because that way the pointer gets passed around,
+    % saving memory and allows me to just pull anything out from before;
+    % it's homogenous across the codebase
+    locs = peaks_info.locs;
+    vals = peaks_info.vals;
+    widths = peaks_info.widths;
+    pairs = peaks_info.pairs;
+    error_coeff = peaks_info.error;
+    baseline = peaks_info.baseline;
+    method = params_struct.seeding_method;
 
     % Format into parameters
     parameters = zeros(16, 1);
 
     if ~isempty(pairs)
-        peaks_111_ind = decide_peaks(locs, vals, pairs, guess, method);
+        peaks_111_ind = decide_peaks(peaks_info, method);
         peaks_111 = pairs(peaks_111_ind, :);
         peaks_111 = peaks_111(1, :);
         % Locations should be sorted
@@ -35,10 +41,10 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
         parameters(5) = (peaks_111_cont(1) + peaks_111_cont(2)) / 2; % Average height
         parameters(6) = (peaks_111_cont(2) - peaks_111_cont(1)) / 2; % Deviation
         
-        pairs(peaks_111_ind, :) = [];
-        guess(peaks_111_ind) = [];
+        peaks_info.pairs(peaks_111_ind, :) = [];
+        peaks_info.centers(peaks_111_ind) = [];
         if ~isempty(pairs)
-            peak_height_sums = decide_peaks(locs, vals, pairs, guess, method);
+            peak_height_sums = decide_peaks(peaks_info, method);
             [~, peaks_non111_ind] = min(peak_height_sums);
             peaks_non111 = pairs(peaks_non111_ind, :);
             peaks_non111_locs = [locs(peaks_non111(1)), locs(peaks_non111(2))];
@@ -67,7 +73,11 @@ function parameters = peaks_to_seed(locs, vals, widths, pairs, ...
     end
 end
 
-function peaks_111_ind = decide_peaks(locs, vals, pairs, guess, method)
+function peaks_111_ind = decide_peaks(peaks_info, method)
+    locs = peaks_info.locs;
+    vals = peaks_info.vals;
+    pairs = peaks_info.pairs;
+    guess = peaks_info.centers;
     if method == 1 % Tallest single
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2)));
         [~, peaks_111_ind] = min(peak_height_sums);
@@ -82,6 +92,7 @@ function peaks_111_ind = decide_peaks(locs, vals, pairs, guess, method)
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2)));
         [~, peaks_111_ind] = min(peak_height_sums);
     elseif method == 4 % Leftmost
+        disp("here")
         peak_height_sums = min(locs(pairs(:, 1)), locs(pairs(:, 2)));
         [~, peaks_111_ind] = min(peak_height_sums);
     elseif method == 5 % Rightmost
@@ -98,4 +109,6 @@ function peaks_111_ind = decide_peaks(locs, vals, pairs, guess, method)
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
         [~, peaks_111_ind] = min(peak_height_sums);
     end
+    disp(locs)
+    disp(locs(peaks_111_ind))
 end

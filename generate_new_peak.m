@@ -3,9 +3,6 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
     % Generate a new peak location by getting all peaks in the area 
     % and choosing the one closest to the ideal
     % (after smoothing first, then without)
-    % new_location = old_location + 0.01e9; % Adjust the criteria as needed
-    % new_value = 2.7e4;
-    % new_width = 1e9;
 
     error_coeff = 1;
     % region_center = 2 * reflection - old_location;
@@ -16,6 +13,13 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
     x_cropped = freq(region_indices);
 
     if isempty(x_cropped) || length(x_cropped) <= 3
+        new_location = -1;
+        new_value = -1;
+        new_width = -1;
+        return
+    end
+    
+    if method == 7
         new_location = -1;
         new_value = -1;
         new_width = -1;

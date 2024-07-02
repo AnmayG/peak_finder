@@ -1,19 +1,43 @@
-function [locs, vals, widths, index_pairs, error_coeff]...
-          = partner_peak(locs, ...,
-                         centers, ...
-                         tolerance, ...
-                         signal, ...
-                         threshold, ...
+function new_peaks_info ...
+          = partner_peak(signal, ...
+                         raw, ...
                          freq, ...
-                         min_dist, ...
-                         vals, widths, proms, method, display, raw)
-    if nargin < 11
+                         peaks_info, ...
+                         params_struct, ...
+                         display)
+    if nargin < 7
         display = false;
     end
 
+    % Extract info from structs
+    centers = peaks_info.centers;
+    locs = peaks_info.locs;
+    tolerance = params_struct.tolerance;
+    max = params_struct.peak_max;
+
     goodness_matrix = zeros(length(locs), length(locs)); % Adjacency matrix between peaks for matching
     for i = 1:length(locs)
-        goodness_matrix(i, :) = partner_peak_vector(locs(i), locs, centers(i), tolerance);
+        vec = partner_peak_vector(locs(i), locs, centers(i), tolerance);
+        goodness_matrix(i, :) = vec;
+    end
+    for i = 1:length(locs)
+        for j = 1:length(locs)
+            peak1 = locs(i);
+            peak2 = locs(j);
+            if params_struct.partnering_method == 2
+                % Shifting
+                peak_max = abs(peak1 + peak2) / 2;
+            elseif params_struct.partnering_method == 1
+                % Splitting
+                peak_max = abs(peak1 - peak2) / 2;
+            else
+                % Skip
+                peak_max = Inf;
+            end
+            if peak_max > max
+                goodness_matrix(i, j) = -Inf;
+            end
+        end
     end
 
     % we love chatgpt
@@ -54,16 +78,13 @@ function [locs, vals, widths, index_pairs, error_coeff]...
             break;
         end
     end
-
-    error_coeff = 1;
-    % [locs, vals, widths, index_pairs, error_coeff] = ...
-    %     add_new_peak(locs, vals, widths, proms, index_pairs, ...
-    %     centers, tolerance, signal, raw, freq, method, min_dist);
+    peaks_info.pairs = index_pairs;
+    new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_struct);
 
     if display
         figure
         hold on
-        yline(threshold, 'Color', 'r')
+        yline(peaks_info.threshold, 'Color', 'r')
         plot(freq, signal, 'Color', 'b')
         plot(locs, vals, 'rs', 'MarkerFaceColor', 'k')
         colors = ['r', 'g', 'b', 'c', 'm', 'y'];
@@ -116,7 +137,7 @@ function [peaks_goodness] = partner_peak_vector(peak_loc, ...
     peaks_goodness = -Inf * ones(size(locs));
     for i=1:numel(locs)
         peak = locs(i);
-        if peak ~= peak_loc % Given peak is on left of split, partner is on right
+        if peak ~= peak_loc
             if peak > phantom_peak_left && peak < phantom_peak_right
                 % Inside possible interval, calculate goodness of each peak
                 peaks_goodness(i) = -(peak - phantom_peak_center)^2;
@@ -125,13 +146,15 @@ function [peaks_goodness] = partner_peak_vector(peak_loc, ...
     end
 end
 
-function [updated_locations, updated_values, updated_widths, updated_pairs, error_coeff] = ...
-    add_new_peak(locations, values, widths, ~, pairs, centers, tolerance, signal, raw, freq, method, min_dist)
+function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_struct)
     % Initialize updated arrays with the original lists
-    updated_locations = locations;
-    updated_values = values;
-    updated_widths = widths;
-    updated_pairs = pairs; % Copy of original pairs
+    locations = peaks_info.locs;
+    updated_locations = peaks_info.locs;
+    updated_values = peaks_info.vals;
+    updated_widths = peaks_info.widths;
+    pairs = peaks_info.pairs;
+    updated_pairs = peaks_info.pairs; % Copy of original pairs
+    centers = peaks_info.centers;
     error_coeff = 0;
         
     % Identify self-pairs and generate new locations, values, and widths
@@ -145,7 +168,8 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
 
             [new_location, new_value, new_width, error_coeff] = ...
                 generate_new_peak(locations(pairs(i, 1)), ideal_center, ...
-                tolerance, signal, raw, freq, updated_locations, method, min_dist);
+                params_struct.tolerance, signal, raw, freq, updated_locations, params_struct.generating_method, ...
+                params_struct.diff_peak_distance);
 
             if new_location == -1
                 % No valid pair found, peak should be deleted
@@ -200,6 +224,14 @@ function [updated_locations, updated_values, updated_widths, updated_pairs, erro
                 end
         end
     end
+
+    % Output packaging
+    new_peaks_info = struct();
+    new_peaks_info.locs = updated_locations;
+    new_peaks_info.vals = updated_values;
+    new_peaks_info.widths = updated_widths;
+    new_peaks_info.pairs = updated_pairs;
+    new_peaks_info.error = error_coeff;
 end
 
 function sorted_array = insert_sorted(array, new_element, idx)

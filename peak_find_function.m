@@ -1,57 +1,39 @@
-function [seed, threshold, pairs, new_locs, new_vals, centers, locs, vals] = ...
-    peak_find_function(use_splitting, split, tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
-        diff_peak_distance, smooth_span, smooth_degree, method, seed_method, normalize)
-        if nargin < 15
-            normalize = false;
-        end
-        if nargin < 8
-            num_max_peaks = 2;
-            peak_perc_threshold = 5;
-            diff_peak_distance = 0.002;
-            smooth_span = 41;
-            smooth_degree = 7;
-            method = 1;
-            seed_method = 1;
+function [seed, new_peaks_info, peaks_info] = ...
+    peak_find_function(x, y, data, freq, params_struct, shift)
+        if nargin < 6
+            shift = params_struct.shift;
         end
 
         raw = squeeze(data(x, y, :));
-        if normalize
+        if params_struct.normalize
             raw=raw-mean(raw);
             raw=raw/std(raw);
         end
-        signal = smooth(raw, smooth_span, 'sgolay', smooth_degree);
-        [vals, locs, widths, proms, threshold, error] = find_peaks_at_point(signal, freq, ...
-            false, num_max_peaks, peak_perc_threshold, diff_peak_distance);
- 
-        % Sort peaks from highest to lowest
-        [~, sorted_indices] = sort(locs);
-        sorted_indices = sorted_indices';
-        locs = locs(sorted_indices)';
-        vals = vals(sorted_indices)'; % Rearrange accordingly
-        widths = widths(sorted_indices)';
-        proms = proms(sorted_indices)';
-
-        centers = get_centers(locs, freq, split, use_splitting);
-               
-        [new_locs, new_vals, new_widths, pairs, error_coeff] = ...
-            partner_peak(locs, centers, tolerance, signal, threshold, freq, diff_peak_distance, ...
-                vals, widths, proms, method, false, raw);
-
-        % Get new centers with new locations
-        centers = get_centers(new_locs, freq, split, use_splitting);
-        baseline = find_baseline(y, x, data, freq);
+        signal = smooth(raw, params_struct.smooth_span, ...
+                        'sgolay', params_struct.smooth_degree);
         
-        % Duplicates indicate mismatches
-        duplicates = pairs(pairs(:, 1) == pairs(:, 2));
-        pairs(duplicates, :) = [];
-        centers(duplicates) = [];
-        seed = peaks_to_seed(new_locs, new_vals, new_widths, pairs, ...
-            baseline, error_coeff + error, seed_method, centers);
+        peaks_info = find_peaks_at_point(signal, freq, false, params_struct);
+        peaks_info.centers = get_centers(peaks_info, params_struct, freq, shift);
+
+        new_peaks_info = partner_peak(signal, raw, freq, peaks_info, params_struct, false);
+        new_peaks_info.centers = get_centers(new_peaks_info, params_struct, freq, shift);
+        duplicates = new_peaks_info.pairs(new_peaks_info.pairs(:, 1) == new_peaks_info.pairs(:, 2));
+        new_peaks_info.pairs(duplicates, :) = [];
+        new_peaks_info.centers(duplicates) = [];
+        new_peaks_info.error = new_peaks_info.error + peaks_info.error;
+        new_peaks_info.baseline = find_baseline(y, x, data, freq);
+        
+        seed = peaks_to_seed(new_peaks_info, params_struct);
 end
 
-function centers = get_centers(locs, freq, split, use_splitting)
-    if use_splitting
-        centers = zeros(size(locs));
+function centers = get_centers(peaks_info, params_struct, freq, split)
+    locs = peaks_info.locs;
+    partnering_method = params_struct.partnering_method;
+    
+    centers = zeros(size(locs));
+    if partnering_method == 1
+        centers = 2 * split - locs; % (split - locs) + split
+    elseif partnering_method == 2
         maxX = max(freq); % If the ideal is past the measured frequency
         for i=1:numel(locs)
             centers(i) = locs(i) + 2 * split;
@@ -59,7 +41,7 @@ function centers = get_centers(locs, freq, split, use_splitting)
                 centers(i) = locs(i) - 2 * split;
             end
         end
-    else
-        centers = 2 * split - locs; % (split - locs) + split
+    elseif partnering_method == 3
+        centers = flip(locs);
     end
 end

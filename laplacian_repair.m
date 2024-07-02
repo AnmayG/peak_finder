@@ -8,11 +8,8 @@
 % us how wrong the guess is according to continuity, so by minimizing the
 % Laplacian we can get some
 
-function [parameters_dataframe, thresh] = laplacian_repair(use_splitting, lock, input_params, data, freq, splits, tolerance, num_max_peaks, ...
-                            peak_perc_threshold, diff_peak_distance, smooth_span, smooth_degree, seed_method, display)
+function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, data, freq, splits, params_struct, display)
     parameters_dataframe = input_params;
-    % lpeak = squeeze(input_params(:, :, 15)) / 1e6;
-    % rpeak = squeeze(input_params(:, :, 16)) / 1e6;
     tries = squeeze(input_params(:, :, 14));
 
     e111 = squeeze(parameters_dataframe(:, :, 2));
@@ -24,13 +21,15 @@ function [parameters_dataframe, thresh] = laplacian_repair(use_splitting, lock, 
         splits = splits * ones(xsize, ysize);
     end
 
+    params_struct.generating_method = 3;
+    params_struct.peak_max = Inf;
+    params_struct.normalize = false;
     parfor x=1:xsize
         for y=1:ysize
             if laplacian(y, x) == 1 % If flagged by laplacian
                 split = splits(y, x);
-                parameters_dataframe(y, x, :) = [peak_find_function(use_splitting, split, ...
-                    tolerance, x, y, data, freq, num_max_peaks, peak_perc_threshold, ...
-                    diff_peak_distance, smooth_span, smooth_degree, 3, seed_method); 0]; % Reseed with closest
+                parameters_dataframe(y, x, :) = [peak_find_function(...
+                    x, y, data, freq, params_struct, split); 0]; % Reseed with closest
             end
         end
     end

@@ -24,7 +24,7 @@ if nargin < 11
                         if nargin < 5
                             constraints = [];
                             if nargin < 4
-                                assert('Not enough parameters');
+                                error('Not enough parameters');
                             end
                         end
                     end
