@@ -21,7 +21,6 @@ function [parameters_dataframe, lapl_thresholds] = laplacian_smoothing(input_par
     output = zeros(size(laplacian, 1), size(laplacian, 2));
     perc_thresholds = [12, 34, 68, 88];
     if lock ~= 0 % Lock should be 0 if it doesn't exist
-        disp(lock)
         lapl_thresholds = lock;
     else
         lapl_thresholds = prctile(laplacian, perc_thresholds, 'all');

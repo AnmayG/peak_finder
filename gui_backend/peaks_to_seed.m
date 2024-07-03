@@ -92,7 +92,6 @@ function peaks_111_ind = decide_peaks(peaks_info, method)
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2)));
         [~, peaks_111_ind] = min(peak_height_sums);
     elseif method == 4 % Leftmost
-        disp("here")
         peak_height_sums = min(locs(pairs(:, 1)), locs(pairs(:, 2)));
         [~, peaks_111_ind] = min(peak_height_sums);
     elseif method == 5 % Rightmost
@@ -109,6 +108,4 @@ function peaks_111_ind = decide_peaks(peaks_info, method)
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
         [~, peaks_111_ind] = min(peak_height_sums);
     end
-    disp(locs)
-    disp(locs(peaks_111_ind))
 end
