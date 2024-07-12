@@ -45,15 +45,8 @@ function new_peaks_info ...
     index_pairs = zeros(num_rows, 2);
     
     % Transform the goodness matrix into a nice row-by-row format
-    values_list = zeros(num_rows * num_cols, 3);
-    ind = 1;
-    for i = 1:num_rows
-        for j = 1:num_cols
-            new_row = [i, j, goodness_matrix(i, j)];
-            values_list(ind, :) = new_row;
-            ind = ind + 1;
-        end
-    end
+    [row_indices, col_indices] = ndgrid(1:num_rows, 1:num_cols);
+    values_list = [row_indices(:), col_indices(:), goodness_matrix(:)];
 
     % Sort them so that the best ones are higher
     values_list = sortrows(values_list, -3);
@@ -135,15 +128,19 @@ function [peaks_goodness] = partner_peak_vector(peak_loc, ...
     phantom_peak_right = phantom_peak_center + tolerance;
     % Iterate through all of the peaks and find "goodness" for each one
     peaks_goodness = -Inf * ones(size(locs));
-    for i=1:numel(locs)
-        peak = locs(i);
-        if peak ~= peak_loc
-            if peak > phantom_peak_left && peak < phantom_peak_right
-                % Inside possible interval, calculate goodness of each peak
-                peaks_goodness(i) = -(peak - phantom_peak_center)^2;
-            end
-        end
-    end
+    % for i=1:numel(locs)
+    %     peak = locs(i);
+    %     if peak ~= peak_loc
+    %         if peak > phantom_peak_left && peak < phantom_peak_right
+    %             % Inside possible interval, calculate goodness of each peak
+    %             peaks_goodness(i) = -(peak - phantom_peak_center)^2;
+    %         end
+    %     end
+    % end
+    
+    % Find the indices of peaks that are not the original and within the possible interval
+    valid_indices = (locs ~= peak_loc) & (locs > phantom_peak_left) & (locs < phantom_peak_right);
+    peaks_goodness(valid_indices) = -(locs(valid_indices) - phantom_peak_center).^2;
 end
 
 function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_struct)

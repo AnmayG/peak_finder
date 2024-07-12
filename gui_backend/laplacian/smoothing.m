@@ -5,7 +5,8 @@ function parameters_dataframe = smoothing(parameters_dataframe, method)
         % Laplacian fix
     elseif method == 3
         % Average
-        K = (1/16)*ones(4);
+        sizes = 4;
+        K = (1/sizes^2)*ones(sizes);
         for index = 1:size(parameters_dataframe, 3)
             parameters_dataframe(:, :, index) = conv2(parameters_dataframe(:, :, index), K, 'same');
         end

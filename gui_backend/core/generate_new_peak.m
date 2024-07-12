@@ -182,12 +182,12 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         widths = mean(widths);
         proms = mean(proms);
     elseif method == 6 % Tallest
-                [vals, locs, widths, proms] = ...
+        [vals, locs, widths, proms] = ...
             findpeaks_custom(-signal_cropped + threshold, x_cropped, ...
                             'SortStr','descend',...
                             'MinPeakDistance', min_dist, ...
                             'WidthReference','halfheight', ...
-                            'NPeaks',1);
+                            'NPeaks', 1);
         vals = -vals + threshold;
         % [~, prom_index] = maxk(vals, 1);
         % vals = vals(prom_index);
@@ -201,7 +201,6 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         vals(duplicate_index) = [];
         widths(duplicate_index) = [];
         proms(duplicate_index) = [];
-        failure = isempty(locs);
     end
 
     % Ultimate failure case: consider the raw
