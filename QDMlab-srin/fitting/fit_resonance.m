@@ -104,7 +104,7 @@ function fit = fit_resonance(expData, kwargs)
         parfor x = 1:sizeX
             % waitbar(x / sizeX, h, "Column " + x);
             for y = 1:sizeY
-                seed=peak_find_function(false, split, tolerancepeak, y, x, pixelData, freq2);
+                seed=peak_find_function(split, tolerancepeak, y, x, pixelData, freq2);
                 initialGuess(y, x, :) = seed(1:13);
             end
         end
@@ -133,7 +133,7 @@ function fit = fit_resonance(expData, kwargs)
             initialGuess = parameters_to_guess(initialPreGuess, kwargs.model);
             fit.initialGuess.states = zeros(size(initialGuess));
         else
-            % single gaus fit for initial parameters
+            % single gauss fit for initial parameters
             model_id = ModelID.GAUSS_1D;
             [initialGuess, states, chiSquares, ~, ~] = gpufit(gpudata, [], ...
                 model_id, initialPreGuess, tolerance, 1000, ...

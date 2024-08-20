@@ -88,6 +88,7 @@ for k=1:max_points
         max_points = max_points - 1;
     end
 end
+plot_point_pages(max_points, points, "Sorted")
 
 % Flatten the points matrix into a single list
 waitbar(2/4, f, "Flattening");

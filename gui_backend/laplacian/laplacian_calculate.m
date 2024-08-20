@@ -8,7 +8,7 @@
 % us how wrong the guess is according to continuity, so by minimizing the
 % Laplacian we can get some
 
-function [parameters_dataframe, lapl_thresholds] = laplacian_smoothing(input_params, lock, display)
+function [parameters_dataframe, lapl_thresholds] = laplacian_calculate(input_params, lock, display)
     if nargin < 3
         display = false;
     end

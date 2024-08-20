@@ -16,7 +16,7 @@ for x = 1:xsize
     end
 end
 
-laplacian_smoothing(parameters_dataframe, true)
+laplacian_calculate(parameters_dataframe, true)
 
 fprintf("Completed, generating figure\n")
 

@@ -104,6 +104,9 @@ function peaks_111_ind = decide_peaks(peaks_info, method)
         peak_height_sums = (locs(pairs(:, 1)) + locs(pairs(:, 2))) / 2; % Get the shift
         peak_height_sums = abs(peak_height_sums - guess); % Distance from guessed centers
         [~, peaks_111_ind] = min(peak_height_sums);
+    elseif method == 8 % Closest heigh difference
+        peak_height_sums = abs(vals(pairs(:, 1)) - vals(pairs(:, 2)));
+        [~, peaks_111_ind] = min(peak_height_sums);
     else
         peak_height_sums = min(vals(pairs(:, 1)), vals(pairs(:, 2))); % tallest total
         [~, peaks_111_ind] = min(peak_height_sums);
