@@ -59,10 +59,16 @@ function [pdf, lock_laplacian] = full_peak_wrapper(all_param_data, data, freq, p
         else
             lock = 0;
         end
-        % for i=1:500
-        [pdf, thresh] = laplacian_repair(lock, pdf, peaks_info_array);
-        lock_laplacian = thresh;
-        % end
+        for i=1:500
+            [pdf2, thresh] = laplacian_repair(lock, pdf, peaks_info_array, 200);
+            lock_laplacian = thresh;
+            lock = lock_laplacian;
+            if ~isequal(squeeze(pdf2(:, :, 17)), squeeze(pdf(:, :, 17)))
+                pdf = pdf2;
+            else
+                break
+            end
+        end
     end
     waitbar(1, f, "Completed");
     close(f);

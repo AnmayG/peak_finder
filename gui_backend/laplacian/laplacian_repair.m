@@ -3,14 +3,12 @@
 % Idea is that the harder we had to try, the more likely we got it wrong
 % Thus, we need to go through all the values that we tried and see how bad
 % the Laplacian is, then fix it pixel-by-pixel
-function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, peaks_info_array)
+function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, peaks_info_array, radius)
     parameters_dataframe = input_params;
     laplacian = squeeze(parameters_dataframe(:, :, 17));
 
     xsize = size(laplacian, 2);
     ysize = size(laplacian, 1);
-    radius = 200;
-    % for radius=202:-100:2
     for x=1:xsize
         for y=1:ysize
             if laplacian(y, x) == 1 % If flagged by laplacian
@@ -20,7 +18,6 @@ function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, p
         end
     end
     [parameters_dataframe, thresh] = laplacian_calculate(parameters_dataframe, lock, false);
-    % end
 end
 
 function [pixel_params] = minimize_laplacian(y, x, peaks_info_array, input_params, radius)
@@ -74,6 +71,7 @@ function [pixel_params] = minimize_laplacian(y, x, peaks_info_array, input_param
                     continue
                 end
                 lapl = abs(neighbors - abs(locs_array(j) - locs_array(i)) / 2);
+                % shift = abs(neighbors - abs(locs_array(j) + locs_array(i)) / 2);
                 if lapl < min_laplacian
                     non111_peaks_info.locs = locs_array([i, j]);
                     non111_peaks_info.vals = vals_array([i, j]);
