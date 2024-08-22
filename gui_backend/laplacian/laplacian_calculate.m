@@ -9,11 +9,7 @@
 % Laplacian we can get some
 
 function [parameters_dataframe, lapl_thresholds] = laplacian_calculate(input_params, lock, display)
-    if nargin < 3
-        display = false;
-    end
     parameters_dataframe = input_params;
-    tries = squeeze(input_params(:, :, 14));
 
     e111 = squeeze(parameters_dataframe(:, :, 2));
     e111 = e111 ./ 1e6;
@@ -57,65 +53,4 @@ function [parameters_dataframe, lapl_thresholds] = laplacian_calculate(input_par
     output = imclose(output, se);
     output = imfill(output, 8);
     parameters_dataframe(:, :, 17) = output;
-    
-    if display
-        figure;
-        subplot(2, 3, 1);
-        hold on;
-        e111(e111 == 0) = NaN;
-        set(gca, 'color', [1 0 0]);
-        imagesc(parameters_dataframe(:, :, 2), 'AlphaData', isnan(e111)); % Display the slice
-        colorbar; % Add a colorbar to each subplot
-        hold on;
-        colorbar;
-        clim('auto');
-        axis tight;
-        axis equal;
-        title("E_{111}");
-        hold off;
-
-        subplot(2, 3, 4);
-        hold on;
-        e111(e111 == 0) = NaN;
-        set(gca, 'color', [1 0 0]);
-        imagesc(parameters_dataframe(:, :, 15), 'AlphaData', isnan(e111)); % Display the slice
-        colorbar; % Add a colorbar to each subplot
-        clim('auto');
-        axis tight;
-        axis equal;
-        title("Left Peak");
-        hold off;
-        
-        subplot(2, 3, 5);
-        hold on;
-        e111(e111 == 0) = NaN;
-        set(gca, 'color', [1 0 0]);
-        imagesc(parameters_dataframe(:, :, 16), 'AlphaData', isnan(e111)); % Display the slice
-        colorbar; % Add a colorbar to each subplot
-        clim('auto');
-        axis tight;
-        axis equal;
-        title("Right Peak");
-        hold off;
-        
-        subplot(2, 3, 2);
-        hold on;
-        imagesc(tries);
-        colorbar;
-        clim('auto');
-        axis tight;
-        axis equal;
-        title("Tries");
-        hold off;
-
-        subplot(2, 3, 3);
-        hold on;
-        imagesc(laplacian);
-        colorbar;
-        clim('auto');
-        axis tight;
-        axis equal;
-        title("Laplacian");
-        hold off;
-    end
 end

@@ -14,11 +14,12 @@ function peaks_info = ...
         % x_bounds = (freq > freq(1) + params_struct.diff_peak_distance) & (freq < freq(end) - params_struct.diff_peak_distance);
         x_bounds = (freq > freq(1)) & (freq < freq(end));
         
-        if params_struct.normalize
-            peak_threshold = mean(signal) - params_struct.peak_perc_threshold * std(signal);
-        else
-            peak_threshold = prctile(signal, params_struct.peak_perc_threshold);
-        end
+        peak_threshold = mean(signal) - params_struct.peak_perc_threshold * std(signal);
+        % if params_struct.normalize
+        % 
+        % else
+        %     peak_threshold = prctile(signal, params_struct.peak_perc_threshold);
+        % end
         [vals, locs, widths, proms] = findpeaks_custom(max(-signal(x_bounds) + peak_threshold, 0), freq(x_bounds), ...
                             'SortStr','descend',...
                             'WidthReference','halfheight', ...
