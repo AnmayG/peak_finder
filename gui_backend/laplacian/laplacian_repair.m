@@ -108,10 +108,16 @@ end
 
 function parameters = calculate_params(peaks_info, non111_peaks_info)
     parameters = zeros(16, 1);
+    baseline = peaks_info.baseline;
+    parameters(13) = baseline;
+    parameters(14) = 9; % 9 means replaced by Laplacian
+
+    if isempty(peaks_info.vals) || numel(peaks_info.vals) < 2
+        return;
+    end
     peaks_111_locs = peaks_info.locs;
     peaks_111_vals = peaks_info.vals;
     peaks_111_fwhm = peaks_info.widths;
-    baseline = peaks_info.baseline;
 
     peaks_111_cont = [(peaks_111_vals(1) - baseline) / baseline, (peaks_111_vals(2) - baseline) / baseline];
     peaks_111_stds = peaks_111_fwhm ./ (2 * sqrt(2 * log(2))); % assuming Gaussian
@@ -138,9 +144,6 @@ function parameters = calculate_params(peaks_info, non111_peaks_info)
         parameters(12) = (peaks_non111_cont(2) - peaks_non111_cont(1)) / 2; % Deviation
     end
 
-    parameters(13) = baseline;
-
-    parameters(14) = 9; % 9 means replaced by Laplacian
     parameters(15) = min(peaks_111_locs);
     parameters(16) = max(peaks_111_locs);
 end
