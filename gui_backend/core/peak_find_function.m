@@ -14,6 +14,12 @@ function [seed, new_peaks_info, peaks_info] = ...
         
         peaks_info = find_peaks_at_point(signal, freq, false, params_struct);
         peaks_info.centers = get_centers(peaks_info, params_struct, freq);
+        remove_idx = filter_peaks(peaks_info, params_struct);
+        peaks_info.vals(remove_idx) = [];
+        peaks_info.locs(remove_idx) = [];
+        peaks_info.widths(remove_idx) = [];
+        peaks_info.proms(remove_idx) = [];
+        peaks_info.centers(remove_idx) = [];
 
         gen_peaks_info = partner_peak(signal, raw, freq, peaks_info, params_struct, false);
         % Regenerate centers for generated peaks
@@ -34,7 +40,7 @@ function centers = get_centers(peaks_info, params_struct, freq)
     shift = params_struct.shift;
     centers = zeros(size(locs));
     if partnering_method == 1
-        centers = 2 * shift - locs; % (split - locs) + split
+        centers = 2 * shift - locs; % (shift - locs) + shift
     elseif partnering_method == 2
         maxX = max(freq); % If the ideal is past the measured frequency
         for i=1:numel(locs)

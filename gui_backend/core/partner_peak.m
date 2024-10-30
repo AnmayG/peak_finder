@@ -13,29 +13,47 @@ function new_peaks_info ...
     centers = peaks_info.centers;
     locs = peaks_info.locs;
     tolerance = params_struct.tolerance;
-    max = params_struct.peak_max;
+    if(isfield(params_struct, "zones_x"))
+        zones_x = params_struct.zones_x;
+        zones_y = params_struct.zones_y;
+        if(isempty(zones_x) || isempty(zones_y))
+            zones_x = [0, Inf];
+            zones_y = [0, Inf];
+        end
+        zoning_method = params_struct.zoning_method;
+    else
+        zones_x = [0, Inf];
+        zones_y = [0, Inf];
+        zoning_method = 0;
+    end
 
+    % Calculate goodness for partnering
     goodness_matrix = zeros(length(locs), length(locs)); % Adjacency matrix between peaks for matching
     for i = 1:length(locs)
         vec = partner_peak_vector(locs(i), locs, centers(i), tolerance);
         goodness_matrix(i, :) = vec;
     end
+
+    % Zoning filters - If shifting/splitting based we don't want to pair
+    % i.e. if we want shiftings from 3e7 to 5e7 and 2e9 to 3e9 we want to
+    % keep the peaks but we don't want to partner them with one another
     for i = 1:length(locs)
         for j = 1:length(locs)
             peak1 = locs(i);
             peak2 = locs(j);
-            if params_struct.partnering_method == 2
+            if zoning_method == 4 || zoning_method == 7
                 % Shifting
-                peak_max = abs(peak1 + peak2) / 2;
-            elseif params_struct.partnering_method == 1
-                % Splitting
-                peak_max = abs(peak1 - peak2) / 2;
-            else
-                % Skip
-                peak_max = Inf;
+                peak_x = abs(peak1 + peak2) / 2;
+                if ~is_valid_peak(peak_x, zones_x)
+                    goodness_matrix(i, j) = -Inf;
+                end
             end
-            if peak_max > max
-                goodness_matrix(i, j) = -Inf;
+            if zoning_method == 5 || zoning_method == 7
+                % Splitting
+                peak_x = abs(peak1 - peak2) / 2;
+                if ~is_valid_peak(peak_x, zones_y)
+                    goodness_matrix(i, j) = -Inf;
+                end
             end
         end
     end
@@ -106,6 +124,17 @@ function new_peaks_info ...
     end
 end
 
+function result = is_valid_peak(coord, valid_locs)
+    result = false;
+    num_intervals = length(valid_locs) - 1;
+    for i = 1:2:num_intervals
+        if coord >= valid_locs(i) && coord <= valid_locs(i+1)
+            result = true;
+            return;
+        end
+    end
+end
+
 % peak_loc is the initial peak that is looking for a partner
 % locs is list of all peak locations
 % split is the dividing point that a peak should be centered at
@@ -160,13 +189,12 @@ function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_str
         if pairs(i, 1) == pairs(i, 2)
             % Self-pair found, generate new location, value, and width
 
-            % ideal_center = 2 * reflectio - locations(pairs(i, 1));
+            % ideal_center = 2 * shift - locations(pairs(i, 1));
             ideal_center = centers(pairs(i, 1));
 
             [new_location, new_value, new_width, error_coeff] = ...
                 generate_new_peak(locations(pairs(i, 1)), ideal_center, ...
-                params_struct.tolerance, signal, raw, freq, updated_locations, params_struct.generating_method, ...
-                params_struct.diff_peak_distance);
+                signal, raw, freq, updated_locations, params_struct);
 
             if new_location == -1
                 % No valid pair found, peak should be deleted

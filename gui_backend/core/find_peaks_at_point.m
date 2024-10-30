@@ -9,18 +9,36 @@ function peaks_info = ...
             params_struct.diff_peak_distance = 0.02e9;
         end
         error = 0;
-        % Chop off the ends to minimize chance of badness happening - plus
-        % peaks shouldn't be there anyways
-        % x_bounds = (freq > freq(1) + params_struct.diff_peak_distance) & (freq < freq(end) - params_struct.diff_peak_distance);
         x_bounds = (freq > freq(1)) & (freq < freq(end));
-        
         peak_threshold = mean(signal) - params_struct.peak_perc_threshold * std(signal);
-        % if params_struct.normalize
-        % 
-        % else
-        %     peak_threshold = prctile(signal, params_struct.peak_perc_threshold);
-        % end
-        [vals, locs, widths, proms] = findpeaks_custom(max(-signal(x_bounds) + peak_threshold, 0), freq(x_bounds), ...
+        norm_signal = max(-signal + peak_threshold, 0);
+        adj_signal = norm_signal(x_bounds);
+        adj_freq = freq(x_bounds);
+        
+        % Zone splicing
+        % Note that currently, zones are naively spliced together
+        % If a frequency is out of range, I don't use it
+        mask1 = false(size(adj_freq));
+        if params_struct.zoning_method == 2 || params_struct.zoning_method == 6
+            zones = reshape(params_struct.zones_x, 2, []).';
+            comparisons = (adj_freq >= zones(:,1)) & (adj_freq <= zones(:,2));
+            mask1 = ~any(comparisons, 1);
+        end
+        mask2 = false(size(adj_freq));
+        if params_struct.zoning_method == 3 || params_struct.zoning_method == 6
+            zones = reshape(params_struct.zones_y, 2, []).';
+            comparisons = (signal(x_bounds) >= zones(:,1)) & (signal(x_bounds) <= zones(:,2));
+            mask2 = ~any(comparisons, 2)';
+        end
+        if params_struct.zoning_method == 5
+            mask = mask1 & mask2;
+        else
+            mask = mask1 | mask2;
+        end
+        adj_signal(mask) = [];
+        adj_freq(mask) = [];
+
+        [vals, locs, widths, proms] = findpeaks_custom(adj_signal, adj_freq, ...
                             'SortStr','descend',...
                             'WidthReference','halfheight', ...
                             'NPeaks', params_struct.num_max_peaks, ...,
@@ -29,18 +47,6 @@ function peaks_info = ...
         % Somehow these get transposed idk why
         vals = vals';
         proms = proms';
-        % Remove all peaks with abnormally low contrast
-        % temp_baseline = mean(z(1:10)); % average of first 10 is a bad baseline, replace with something smarter later
-        % contrasts = (vals - temp_baseline) ./ temp_baseline;
-        % rm_locs = contrasts > -0.002;
-        % if sum(rm_locs) < numel(locs)
-        %     error = 1;
-        %     vals(rm_locs) = [];
-        %     locs(rm_locs) = [];
-        %     widths(rm_locs) = [];
-        %     proms(rm_locs) = [];
-        % end
-
         % Sort peaks from left to right
         [~, sorted_indices] = sort(locs);
         sorted_indices = sorted_indices';

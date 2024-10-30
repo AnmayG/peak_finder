@@ -1,11 +1,13 @@
 function [new_location, new_value, new_width, error_coeff] = generate_new_peak(old_location, ...
-    region_center, tolerance, signal, raw, freq, old_locs, method, min_dist)
+    region_center, signal, raw, freq, old_locs, params_struct)
     % Generate a new peak location by getting all peaks in the area 
     % and choosing the one closest to the ideal
     % (after smoothing first, then without)
-
+    tolerance = params_struct.tolerance;
+    method = params_struct.generating_method;
+    min_dist = params_struct.diff_peak_distance;
     error_coeff = 1;
-    % region_center = 2 * reflection - old_location;
+    % region_center = 2 * shift - old_location;
     region_left = max([region_center - tolerance, freq(1)]);
     region_right = min([freq(end), region_center + tolerance]);
     region_indices = (freq >= region_left) & (freq <= region_right);
@@ -203,6 +205,11 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         proms(duplicate_index) = [];
     end
 
+    % Zoning constraint 1
+    tmp_peaks_info = struct('locs', locs, 'vals', vals, 'widths', widths, 'proms', proms);
+    rm_idx = filter_peaks(tmp_peaks_info, params_struct);
+    locs(rm_idx) = [];
+
     % Ultimate failure case: consider the raw
     % Consider lightly smoothed as per Fu's code
     if isempty(locs)
@@ -237,7 +244,11 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
             proms(duplicate_index) = [];
         end
     end
-
+    
+    % Zoning constraint 2
+    tmp_peaks_info2 = struct("locs", locs, "vals", vals, "widths", widths, "proms", proms);
+    rm_idx2 = filter_peaks(tmp_peaks_info2, params_struct);
+    locs(rm_idx2) = [];
     % If still nothing, return none
     if isempty(locs)
         error_coeff = 4;
