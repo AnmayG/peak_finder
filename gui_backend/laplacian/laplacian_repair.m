@@ -52,11 +52,6 @@ function [pixel_params] = minimize_laplacian(y, x, peaks_info_array, input_param
             end
         end
     end
-    % if y == 121 && x == 63
-    %     disp(locs_array')
-    %     disp([mini, minj])
-    %     disp(min_laplacian)
-    % end
 
     if numel(locs_array) > 2
         locs_array([mini, minj]) = [];

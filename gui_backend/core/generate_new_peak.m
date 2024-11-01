@@ -1,4 +1,4 @@
-function [new_location, new_value, new_width, error_coeff] = generate_new_peak(old_location, ...
+function [new_location, new_value, new_width, new_prom, error_coeff] = generate_new_peak(old_location, ...
     region_center, signal, raw, freq, old_locs, params_struct)
     % Generate a new peak location by getting all peaks in the area 
     % and choosing the one closest to the ideal
@@ -18,6 +18,7 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         new_location = -1;
         new_value = -1;
         new_width = -1;
+        new_prom = -1;
         return
     end
     
@@ -25,6 +26,7 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         new_location = -1;
         new_value = -1;
         new_width = -1;
+        new_prom = -1;
         return
     end
 
@@ -255,6 +257,7 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         new_location = -1;
         new_value = -1;
         new_width = -1;
+        new_prom = -1;
     else
         % If a list exists, return the one with the highest goodness
         peaks_goodness = -(locs - region_center).^2;
@@ -262,5 +265,6 @@ function [new_location, new_value, new_width, error_coeff] = generate_new_peak(o
         new_location = locs(new_ind);
         new_value = vals(new_ind);
         new_width = widths(new_ind);
+        new_prom = proms(new_ind);
     end
 end

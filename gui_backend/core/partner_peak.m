@@ -178,6 +178,7 @@ function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_str
     updated_locations = peaks_info.locs;
     updated_values = peaks_info.vals;
     updated_widths = peaks_info.widths;
+    updated_proms = peaks_info.proms;
     pairs = peaks_info.pairs;
     updated_pairs = peaks_info.pairs; % Copy of original pairs
     centers = peaks_info.centers;
@@ -192,7 +193,7 @@ function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_str
             % ideal_center = 2 * shift - locations(pairs(i, 1));
             ideal_center = centers(pairs(i, 1));
 
-            [new_location, new_value, new_width, error_coeff] = ...
+            [new_location, new_value, new_width, new_prom, error_coeff] = ...
                 generate_new_peak(locations(pairs(i, 1)), ideal_center, ...
                 signal, raw, freq, updated_locations, params_struct);
 
@@ -223,6 +224,7 @@ function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_str
             updated_locations = insert_sorted(updated_locations, new_location, new_index);
             updated_values = insert_sorted(updated_values, new_value, new_index);
             updated_widths = insert_sorted(updated_widths, new_width, new_index);
+            updated_proms = insert_sorted(updated_proms, new_prom, new_index);
             if replace_index >= new_index % Check to see if inserting messed anything up
                 replace_index = replace_index + 1;
             end
@@ -238,6 +240,7 @@ function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_str
         updated_locations(i) = [];
         updated_values(i) = [];
         updated_widths(i) = [];
+        updated_proms(i) = [];
         updated_pairs(i, :) = [];
         % Modify after delete
         for j=1:size(updated_pairs, 1)
@@ -255,6 +258,7 @@ function new_peaks_info = add_new_peak(peaks_info, signal, raw, freq, params_str
     new_peaks_info.locs = updated_locations;
     new_peaks_info.vals = updated_values;
     new_peaks_info.widths = updated_widths;
+    new_peaks_info.proms = updated_proms;
     new_peaks_info.pairs = updated_pairs;
     new_peaks_info.error = error_coeff;
 end
