@@ -17,11 +17,22 @@ function [pdf, lock_laplacian, peak_info_df] = full_peak_wrapper(all_param_data,
     locs_array = zeros(xsize, ysize, max_num_peaks);
     vals_array = zeros(xsize, ysize, max_num_peaks);
     widths_array = zeros(xsize, ysize, max_num_peaks);
+    proms_array = zeros(xsize, ysize, max_num_peaks);
     baseline_array = zeros(xsize, ysize);
+    mask = params.roi_mask;
 
     waitbar(0.33, f, "Finding Peaks");
     parfor x = 1:xsize
         for y = 1:ysize
+            if ~mask(y,x)
+                pdf(y, x, :) = zeros(num_params, 1);
+                locs_array(y, x, :) = zeros(1, max_num_peaks);
+                vals_array(y, x, :) = zeros(1, max_num_peaks);
+                widths_array(y, x, :) = zeros(1, max_num_peaks);
+                proms_array(y, x, :) = zeros(1, max_num_peaks);
+                baseline_array(y, x) = 0;
+                continue;
+            end
             shifting = ref_data(y, x);
             [pdf(y, x, :), new_peaks_info, peaks_info] = peak_find_function(x, y, data, freq, params, shifting);
             
@@ -64,24 +75,6 @@ function [pdf, lock_laplacian, peak_info_df] = full_peak_wrapper(all_param_data,
         lock_laplacian = lock;
     end
     if params.smoothing_method == 2
-        % % Repairs should use the old value if we're locked and
-        % % make new ones if we're not
-        % if params.lock_flag
-        %     lock = lock_laplacian;
-        % else
-        %     lock = 0;
-        % end
-        % for i=1:500
-        %     % laplacian_repair does not change peak_info
-        %     [pdf2, thresh] = laplacian_repair(lock, pdf, peak_info_df, 200);
-        %     lock_laplacian = thresh;
-        %     lock = lock_laplacian;
-        %     if ~isequal(squeeze(pdf2(:, :, 17)), squeeze(pdf(:, :, 17)))
-        %         pdf = pdf2;
-        %     else
-        %         break
-        %     end
-        % end
         [pdf, lock_laplacian] = laplacian_wrapper(params, pdf, peak_info_df);
     end
     waitbar(1, f, "Completed");

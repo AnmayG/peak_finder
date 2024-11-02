@@ -7,7 +7,7 @@ function [pdf, lock] = laplacian_wrapper(params, pdf, peak_info_df, lock_laplaci
     end
     for i=1:500
         % laplacian_repair does not change peak_info
-        [pdf2, thresh] = laplacian_repair(lock, pdf, peak_info_df, 200);
+        [pdf2, thresh] = laplacian_repair(lock, pdf, peak_info_df, 200, params.roi_mask);
         lock_laplacian = thresh;
         lock = lock_laplacian;
         if ~isequal(squeeze(pdf2(:, :, 17)), squeeze(pdf(:, :, 17)))

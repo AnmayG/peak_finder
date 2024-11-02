@@ -3,7 +3,7 @@
 % Idea is that the harder we had to try, the more likely we got it wrong
 % Thus, we need to go through all the values that we tried and see how bad
 % the Laplacian is, then fix it pixel-by-pixel
-function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, peaks_info_array, radius)
+function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, peaks_info_array, radius, mask)
     parameters_dataframe = input_params;
     laplacian = squeeze(parameters_dataframe(:, :, 17));
 
@@ -11,6 +11,9 @@ function [parameters_dataframe, thresh] = laplacian_repair(lock, input_params, p
     ysize = size(laplacian, 1);
     for x=1:xsize
         for y=1:ysize
+            if ~mask
+                continue;
+            end
             if laplacian(y, x) == 1 % If flagged by laplacian
                 pixel_params = minimize_laplacian(y, x, peaks_info_array, parameters_dataframe, radius - 1);
                 parameters_dataframe(y, x, :) = pixel_params;
