@@ -30,8 +30,17 @@ function peaks_info = ...
             comparisons = (signal(x_bounds) >= zones(:,1)) & (signal(x_bounds) <= zones(:,2));
             mask2 = ~any(comparisons, 2)';
         end
-        if params_struct.zoning_method == 5
+        if params_struct.zoning_method == 6
             mask = mask1 & mask2;
+        elseif params_struct.zoning_method == 7
+            freq_zones = params_struct.zones_x;
+            for i=1:2:length(params_struct.zones_x)
+                freq_zones(i) = params_struct.zones_x(i) - params_struct.zones_y(i);
+                freq_zones(i+1) = params_struct.zones_x(i+1) + params_struct.zones_y(i+1);
+            end
+            zones = reshape(freq_zones, 2, []).';
+            comparisons = (adj_freq >= zones(:,1)) & (adj_freq <= zones(:,2));
+            mask = ~any(comparisons, 1);
         else
             mask = mask1 | mask2;
         end

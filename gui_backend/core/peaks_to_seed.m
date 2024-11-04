@@ -13,7 +13,7 @@ function parameters = peaks_to_seed(peaks_info, params_struct)
     % Format into parameters
     parameters = zeros(16, 1);
 
-    if ~isempty(pairs)
+    if ~isempty(pairs) && length(peaks_info.locs) > 1
         peaks_111_ind = decide_peaks(peaks_info, method);
         peaks_111 = pairs(peaks_111_ind, :);
         peaks_111 = peaks_111(1, :);

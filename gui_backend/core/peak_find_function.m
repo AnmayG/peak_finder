@@ -14,14 +14,17 @@ function [seed, new_peaks_info, peaks_info] = ...
         
         peaks_info = find_peaks_at_point(signal, freq, false, params_struct);
         peaks_info.centers = get_centers(peaks_info, params_struct, freq);
-        remove_idx = filter_peaks(peaks_info, params_struct);
-        peaks_info.vals(remove_idx) = [];
-        peaks_info.locs(remove_idx) = [];
-        peaks_info.widths(remove_idx) = [];
-        peaks_info.proms(remove_idx) = [];
-        peaks_info.centers(remove_idx) = [];
 
-        gen_peaks_info = partner_peak(signal, raw, freq, peaks_info, params_struct, false);
+        % Filter out peaks if applicable
+        remove_idx = filter_peaks(peaks_info, params_struct);
+        zoning_peaks_info = peaks_info;
+        zoning_peaks_info.vals(remove_idx) = [];
+        zoning_peaks_info.locs(remove_idx) = [];
+        zoning_peaks_info.widths(remove_idx) = [];
+        zoning_peaks_info.proms(remove_idx) = [];
+        zoning_peaks_info.centers(remove_idx) = [];
+
+        gen_peaks_info = partner_peak(signal, raw, freq, zoning_peaks_info, params_struct, false);
         % Regenerate centers for generated peaks
         new_peaks_info = gen_peaks_info;
         new_peaks_info.centers = get_centers(new_peaks_info, params_struct, freq);

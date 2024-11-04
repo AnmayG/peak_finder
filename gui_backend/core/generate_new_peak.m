@@ -209,7 +209,7 @@ function [new_location, new_value, new_width, new_prom, error_coeff] = generate_
 
     % Zoning constraint 1
     tmp_peaks_info = struct('locs', locs, 'vals', vals, 'widths', widths, 'proms', proms);
-    rm_idx = filter_peaks(tmp_peaks_info, params_struct);
+    rm_idx = filter_peaks(tmp_peaks_info, params_struct, old_location);
     locs(rm_idx) = [];
 
     % Ultimate failure case: consider the raw
@@ -249,7 +249,7 @@ function [new_location, new_value, new_width, new_prom, error_coeff] = generate_
     
     % Zoning constraint 2
     tmp_peaks_info2 = struct("locs", locs, "vals", vals, "widths", widths, "proms", proms);
-    rm_idx2 = filter_peaks(tmp_peaks_info2, params_struct);
+    rm_idx2 = filter_peaks(tmp_peaks_info2, params_struct, old_location);
     locs(rm_idx2) = [];
     % If still nothing, return none
     if isempty(locs)

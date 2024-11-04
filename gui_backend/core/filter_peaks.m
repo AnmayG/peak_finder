@@ -1,4 +1,9 @@
-function remove_idx = filter_peaks(peaks_info, params_struct)
+function remove_idx = filter_peaks(peaks_info, params_struct, old_loc)
+    if nargin < 3 && ismember(params_struct.zoning_method, [4, 5, 7])
+        % No old location provided, not zoning
+        old_loc = -1;
+        % params_struct.zoning_method = 1;
+    end
     if(isfield(params_struct, "zones_x"))
         zones_x = params_struct.zones_x;
         zones_y = params_struct.zones_y;
@@ -6,7 +11,7 @@ function remove_idx = filter_peaks(peaks_info, params_struct)
     else
         zones_x = [0, Inf];
         zones_y = [0, Inf];
-        zoning_method = 0;
+        zoning_method = 1;
     end
     % Zoning filters
     % If we're doing absolute zoning, peaks outside the allowed values
@@ -31,8 +36,20 @@ function remove_idx = filter_peaks(peaks_info, params_struct)
             end
         case 4
             % Shift
+            for i=1:length(locs)
+                shift = (old_loc + locs(i)) / 2;
+                if ~is_valid_peak(shift, zones_x)
+                    remove_idx(i) = true;
+                end
+            end
         case 5
             % Split
+            for i=1:length(locs)
+                split = (old_loc - locs(i)) / 2;
+                if ~is_valid_peak(split, zones_y)
+                    remove_idx(i) = true;
+                end
+            end
         case 6
             % Frequency + Vals
             for i=1:length(locs)
@@ -47,6 +64,30 @@ function remove_idx = filter_peaks(peaks_info, params_struct)
             end
         case 7
             % Split + Shift
+            freq_zones = zones_x;
+            for i=1:2:length(zones_x)
+                freq_zones(i) = zones_x(i) - zones_y(i);
+                freq_zones(i+1) = zones_x(i+1) + zones_y(i+1);
+            end
+            for i=1:length(locs)
+                if ~is_valid_peak(locs(i), freq_zones)
+                    remove_idx(i) = true;
+                end
+            end
+            if old_loc ~= -1
+                for i=1:length(locs)
+                    shift = (old_loc + locs(i)) / 2;
+                    if ~is_valid_peak(shift, zones_x)
+                        remove_idx(i) = true;
+                    end
+                end
+                for i=1:length(locs)
+                    split = (old_loc - locs(i)) / 2;
+                    if ~is_valid_peak(split, zones_y)
+                        remove_idx(i) = true;
+                    end
+                end
+            end
     end
 end
 
