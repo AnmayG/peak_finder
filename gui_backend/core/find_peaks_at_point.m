@@ -35,6 +35,9 @@ function peaks_info = ...
         elseif params_struct.zoning_method == 7
             freq_zones = params_struct.zones_x;
             for i=1:2:length(params_struct.zones_x)
+                if i > length(params_struct.zones_x) || i > length(params_struct.zones_y)
+                    break;
+                end
                 freq_zones(i) = params_struct.zones_x(i) - params_struct.zones_y(i);
                 freq_zones(i+1) = params_struct.zones_x(i+1) + params_struct.zones_y(i+1);
             end

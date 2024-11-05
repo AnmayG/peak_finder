@@ -65,7 +65,9 @@ function remove_idx = filter_peaks(peaks_info, params_struct, old_loc)
         case 7
             % Split + Shift
             freq_zones = zones_x;
-            for i=1:2:length(zones_x)
+            for i=1:2:numel(zones_x) - 2
+                disp(i)
+                disp(zones_y)
                 freq_zones(i) = zones_x(i) - zones_y(i);
                 freq_zones(i+1) = zones_x(i+1) + zones_y(i+1);
             end
