@@ -31,6 +31,7 @@ function [pdf, lock_laplacian, peak_info_df] = full_peak_wrapper(all_param_data,
                 widths_array(y, x, :) = zeros(1, max_num_peaks);
                 proms_array(y, x, :) = zeros(1, max_num_peaks);
                 baseline_array(y, x) = 0;
+                disp([y, x]);
                 continue;
             end
             shifting = ref_data(y, x);
