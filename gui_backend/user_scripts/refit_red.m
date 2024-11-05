@@ -6,8 +6,9 @@ function function_outputs = refit_red(function_inputs)
     %    peak_info: [1×1 struct] with fields locs, vals, widths, proms
     %   reflection: [n × n double]
     %     settings: [1×1 struct] with each parameter from inputs
+    % new_settings: [1×1 struct] with parameters at time of run
     function_outputs = function_inputs;
-    params = function_inputs(1).settings(1);
+    settings = function_inputs.new_settings;
     % Modify function_outputs fields below
     num_inputs = length(function_inputs);
     for i=1:num_inputs
@@ -22,7 +23,15 @@ function function_outputs = refit_red(function_inputs)
             end
         end
         [pdf, ~, peak_info] = full_peak_wrapper([], in.signal, in.SweepParam, ...
-            in.settings(i), 0, in.reflection, 16);
+            settings, 0, in.reflection, 16);
+        curr_param = function_inputs(i).parameters;
+        for x=1:size(mask,1)
+            for y=1:size(mask,2)
+               if(~mask(y, x))
+                    pdf(y, x, :) = curr_param(y, x, :);    
+               end
+            end
+        end
         function_outputs(i).parameters = pdf;
         function_outputs(i).peak_info = peak_info;
     end

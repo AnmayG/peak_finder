@@ -6,8 +6,9 @@ function function_outputs = queue_fits(function_inputs)
     %    peak_info: [1×1 struct] with fields locs, vals, widths, proms
     %   reflection: [n × n double]
     %     settings: [1×1 struct] with each parameter from inputs
+    % new_settings: [1×1 struct] with parameters at time of run
     function_outputs = function_inputs;
-    params = function_inputs(1).settings(1);
+    params = function_inputs.new_settings;
     % Modify function_outputs fields below
     num_inputs = length(function_inputs);
     for i=1:num_inputs
