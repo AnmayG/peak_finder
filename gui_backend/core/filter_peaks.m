@@ -36,6 +36,9 @@ function remove_idx = filter_peaks(peaks_info, params_struct, old_loc)
             end
         case 4
             % Shift
+            if(old_loc == -1)
+                return;
+            end
             for i=1:length(locs)
                 shift = (old_loc + locs(i)) / 2;
                 if ~is_valid_peak(shift, zones_x)
@@ -44,12 +47,16 @@ function remove_idx = filter_peaks(peaks_info, params_struct, old_loc)
             end
         case 5
             % Split
+            if(old_loc == -1)
+                return;
+            end
             for i=1:length(locs)
                 split = (old_loc - locs(i)) / 2;
                 if ~is_valid_peak(split, zones_y)
                     remove_idx(i) = true;
                 end
             end
+            disp(remove_idx)
         case 6
             % Frequency + Vals
             for i=1:length(locs)
@@ -64,6 +71,9 @@ function remove_idx = filter_peaks(peaks_info, params_struct, old_loc)
             end
         case 7
             % Split + Shift
+            if(old_loc == -1)
+                return;
+            end
             freq_zones = zones_x;
             for i=1:2:numel(zones_x) - 2
                 disp(i)
