@@ -9,15 +9,17 @@ function function_outputs = positive_refit_red(function_inputs)
     % new_settings: [1×1 struct] with parameters at time of run
     function_outputs = function_inputs;
     settings = function_inputs.new_settings;
-    % assignin('base', 'setz', settings);
+    assignin('base', 'setz', settings);
     % Modify function_outputs fields below
     num_inputs = length(function_inputs);
     for i=1:num_inputs
         in = function_inputs(i);
         mask = in.settings(i).roi_mask;
+        mask=in.new_settings(i).roi_mask; %srin check
 
 
         prev_params = in.parameters;
+        disp(size(mask));
         for x=1:size(mask,1)
             for y=1:size(mask,2)
                 if mask(y,x) && prev_params(y, x, 1) ~= 0 % D map is nonzero
@@ -37,20 +39,24 @@ function function_outputs = positive_refit_red(function_inputs)
         % 
         flip_signal=sig;
 
+        assignin('base', 'refz', in.reflection);
+
 
         [pdf, ~, peak_info] = full_peak_wrapper([], flip_signal, in.SweepParam, ...
             settings, 0, in.reflection, 16);
 
-        % assignin('base', 'sig', flip_signal);
-        % %disp('hi');
-        % assignin('base', 'sp', in.SweepParam);
+        assignin('base', 'sig', flip_signal);
+        %disp('hi');
+        assignin('base', 'sp', in.SweepParam);
         curr_param = function_inputs(i).parameters;
         for x=1:size(mask,1)
             for y=1:size(mask,2)
                if(~mask(y, x))
-                    pdf(y, x, :) = curr_param(y, x, :);
+                   pdf(y, x, :) = curr_param(y, x, :);
                else
-                   pdf(y, x, 2) = 2.863*pdf(y, x, 2); %2.863?
+                   disp('bonk');
+                   pdf(y, x, 2) = 3*pdf(y, x, 2); %2.863? %2.76
+                   disp(pdf(y,x,2));
                end
             end
         end
