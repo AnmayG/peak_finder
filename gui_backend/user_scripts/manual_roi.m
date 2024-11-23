@@ -10,7 +10,7 @@ function function_outputs = manual_roi(function_inputs)
     function_outputs = function_inputs;
     % Modify function_outputs fields below
     prev_params = function_inputs.parameters;
-    new_mask = paintMask(prev_params(:, :, 1));
+    new_mask = paintMask(prev_params(:, :, 2));
     for i=length(function_inputs)
         function_outputs(i).settings(i).roi_mask = new_mask;
     end
@@ -31,7 +31,7 @@ function mask = paintMask(data)
     hold on;
     mask = zeros(size(matrix));
     
-    brushSize = 5;
+    brushSize = 1;
     halfBrush = floor(brushSize / 2);
     
     set(figureHandle, 'WindowButtonDownFcn', @mouseDown);

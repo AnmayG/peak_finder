@@ -54,9 +54,9 @@ function function_outputs = positive_refit_red(function_inputs)
                if(~mask(y, x))
                    pdf(y, x, :) = curr_param(y, x, :);
                else
-                   disp('bonk');
-                   pdf(y, x, 2) = 3*pdf(y, x, 2); %2.863? %2.76
-                   disp(pdf(y,x,2));
+                   
+                   pdf(y, x, 2) = 2.5*pdf(y, x, 2); %2.863? %2.76
+                   
                end
             end
         end
