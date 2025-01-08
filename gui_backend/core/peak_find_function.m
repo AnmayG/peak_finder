@@ -23,6 +23,7 @@ function [seed, new_peaks_info, peaks_info] = ...
         zoning_peaks_info.widths(remove_idx) = [];
         zoning_peaks_info.proms(remove_idx) = [];
         zoning_peaks_info.centers(remove_idx) = [];
+        zoning_peaks_info.refs(remove_idx) = [];
 
         gen_peaks_info = partner_peak(signal, raw, freq, zoning_peaks_info, params_struct, false);
         % Regenerate centers for generated peaks

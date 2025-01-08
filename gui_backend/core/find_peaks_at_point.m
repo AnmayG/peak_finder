@@ -74,6 +74,18 @@ function peaks_info = ...
         peaks_info.proms = proms;
         peaks_info.threshold = peak_threshold;
         peaks_info.error = error;
+        peaks_info.refs= zeros(size(locs)); %optionally use the 2024b refinepeaks method
+        if params_struct.refine
+            [~, indices] = arrayfun(@(x) min(abs(adj_freq - x)), locs);
+            disp(indices)
+            disp("old")
+            disp(peaks_info.locs)
+            disp("new")
+            [~, peaks_info.locs]=refinepeaks(adj_signal, indices, adj_freq);
+            disp(peaks_info.locs)
+
+        end
+
 
         if display
             figure
