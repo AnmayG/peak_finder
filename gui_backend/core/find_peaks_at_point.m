@@ -75,8 +75,8 @@ function peaks_info = ...
         peaks_info.threshold = peak_threshold;
         peaks_info.error = error;
 
-        if params_struct.refine
-            [~, indices] = arrayfun(@(x) min(abs(adj_freq - x)), locs); %extract peak indicies
+        if params_struct.refine && ~isempty(peaks_info.locs)
+            [~, indices] = arrayfun(@(x) min(abs(adj_freq - x)), peaks_info.locs); %extract peak indicies
 
             [~, peaks_info.locs]=refinepeaks(adj_signal, indices, adj_freq); %toss the updated vals since there is a scaling issue and they're mostly aesthetic/hidden by the size of the peak marker
         end
