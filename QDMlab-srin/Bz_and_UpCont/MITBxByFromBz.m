@@ -1,5 +1,5 @@
 function [Bx, By] = MITBxByFromBz(Bz, fs)
-%[Bx, By] = MITBxByFromBz(Bz, fs)
+%[Bx, By] = MITBxByFromBz(Bz, fs) %SRINMOD
 %   Retrieves the x and y components of the magnetic field from a map of the z component. It performs
 %   this operation in the frequency domain. See, for instance, Egli and Heller (eq. 12), and Roth and
 %   Wikswo.
@@ -12,8 +12,8 @@ function [Bx, By] = MITBxByFromBz(Bz, fs)
 %   ----------------------------------------------------------------------------------------------
 
 
-SHOWGRAPHS = 0; % Set this value to 1 to show frequency response plots, or to 0 otherwise.
-
+SHOWGRAPHS = 1; % Set this value to 1 to show frequency response plots, or to 0 otherwise.
+Bz = fillmissing(Bz, 'linear');
 [SIZEx, SIZEy] = size(Bz);
 N1 = SIZEx;
 N2 = SIZEy;
