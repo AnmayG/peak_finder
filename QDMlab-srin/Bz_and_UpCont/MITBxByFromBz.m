@@ -1,5 +1,5 @@
 function [Bx, By] = MITBxByFromBz(Bz, fs)
-%[Bx, By] = MITBxByFromBz(Bz, fs) %SRINMOD
+%[Bx, By] = MITBxByFromBz(Bz, fs)
 %   Retrieves the x and y components of the magnetic field from a map of the z component. It performs
 %   this operation in the frequency domain. See, for instance, Egli and Heller (eq. 12), and Roth and
 %   Wikswo.
@@ -12,14 +12,19 @@ function [Bx, By] = MITBxByFromBz(Bz, fs)
 %   ----------------------------------------------------------------------------------------------
 
 
-SHOWGRAPHS = 1; % Set this value to 1 to show frequency response plots, or to 0 otherwise.
-Bz = fillmissing(Bz, 'linear');
+SHOWGRAPHS = 0; % Set this value to 1 to show frequency response plots, or to 0 otherwise.
+
 [SIZEx, SIZEy] = size(Bz);
 N1 = SIZEx;
 N2 = SIZEy;
 
 f1 = [0:N1 / 2, -(N1 / 2 - 1):-1] * fs / N1; %these freq. coordinates match the fft algorithm
 f2 = [0:N2 / 2, -(N2 / 2 - 1):-1] * fs / N2;
+
+
+f1 = [0:floor(N1/2), -ceil(N1/2-1):-1] * fs / N1;
+f2 = [0:floor(N2/2), -ceil(N2/2-1):-1] * fs / N2; % Ensures N1,N2 elements SRIN
+
 
 ff1 = (-N1 / 2:N1 / 2 - 1) * fs / N1; %these freq. coordinates are more suitable to visualization
 ff2 = (-N2 / 2:N2 / 2 - 1) * fs / N2;
@@ -42,6 +47,11 @@ ety = -1i * ky ./ k; % calculate the filter frequency response associated with t
 evy = -1i * kky ./ kk;
 
 e = fft2(Bz, N1, N2);
+% disp(size(e)); %srin!
+% disp(size(etx));
+% disp(size(ety));
+% disp(length(f1)); % Should be 58
+% disp(length(f2)); % Should be 103
 
 if SHOWGRAPHS
     figure

@@ -14,9 +14,7 @@ classdef ModelID
         SPLINE_3D_MULTICHANNEL = 11
         SPLINE_3D_PHASE_MULTICHANNEL = 12
         GAUSS4 = 13
-        GAUSS2 = 14
-        GAUSSTWIN = 15
-        GAUSSTWIND = 16
+        QUAD_2 = 14
     end
     methods (Static)
         function v = validID(id)

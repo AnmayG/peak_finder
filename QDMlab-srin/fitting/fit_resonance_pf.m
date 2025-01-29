@@ -1,4 +1,4 @@
-function fit = fit_resonance(expData, binSize, nRes, header, kwargs)
+function fit = fit_resonance_pf(sig, sp, pdf, binSize, nRes, header, kwargs)
 %[fit] = fit_resonance(expData, binSize, nRes; 'header', 'type', 'globalFraction', 'forceGuess', 'checkPlot', 'gaussianFit', 'gaussianFilter', 'smoothDegree', 'diamond', 'slopeCorrection', 'crop', 'fcrop')
 % fits a single resonance frequency (i.e. low/high frequency range) of
 % either positive or negative field.
@@ -54,7 +54,9 @@ function fit = fit_resonance(expData, binSize, nRes, header, kwargs)
 %                     GPU_NOT_READY = 4,
 
 arguments
-    expData struct
+    sig
+    sp
+    pdf
     binSize double
     nRes (1, 1) int16
     header = 'none'
@@ -89,7 +91,7 @@ end
 %% data preparation
 % this step could easily be skipped, the only thing one needs to figure out
 % is how to get the
-[binDataNorm, freq] = prepare_raw_data(expData, binSize, nRes, header, 'crop', kwargs.crop, 'fcrop', kwargs.fcrop);
+[binDataNorm, freq] = prepare_raw_data_pf(sig,sp, binSize, nRes, header, 'crop', kwargs.crop, 'fcrop', kwargs.fcrop);
 
 %%srin TEST an array of all 1.07
 
@@ -121,9 +123,9 @@ logMsg('info',msg,1,0);
 %% first determine global guess
 meanData = squeeze(mean(binDataNorm, [1, 2], 'omitnan'));
 
-if kwargs.type ~= 2
-    initialGuess = global_guess(binDataNorm, freq); % initial guess for GPUfit
-end
+% if kwargs.type ~= 2
+%     initialGuess = global_guess(binDataNorm, freq); % initial guess for GPUfit
+% end
 
 %% prepare GPUfit data
 sweepLength = size(freq, 2); %%srin i think this is correct because its 1xn regardless
@@ -143,10 +145,10 @@ xValues = single(freq');
 %% GUESS INITIAL FIT PARAMETERS
 
 %% gloabl guess
-if kwargs.type == 0 % reshape into [6 x numpoints]
-    initialGuess = reshape(initialGuess, [imgPts, 13]); %%srinsrin originally 13
-    initialGuess = transpose(initialGuess);
-end
+% if kwargs.type == 0 % reshape into [6 x numpoints]
+%     initialGuess = reshape(initialGuess, [imgPts, 13]); %%srinsrin originally 13
+%     initialGuess = transpose(initialGuess);
+% end
 
 %% local guess -> guess parameter for each pixel
 
@@ -542,6 +544,9 @@ constraint(:,:,25) = -0.002;
 constraint(:,:,26) = 0.002;
 
 
+[initialGuess, constraint]=global_guess_pf(pdf);
+initialGuess = reshape(initialGuess, [imgPts, 13]); %%srinsrin originally 13
+initialGuess = transpose(initialGuess);
 constraint = reshape(constraint, [imgPts, 26]); %%srinsrin originally 13
 initconstraint = single(transpose(constraint));
 contype= int32(ones(1, 12) * 3); %%srin i.e. constrain both upper and lower bounds, see constrainttype.m

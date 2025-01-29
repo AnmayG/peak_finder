@@ -2,7 +2,7 @@ function model = model_GPU(p, freq, kwargs)
 %[model] = model_GPU(p, freq; '['N15',', 'data', 'checkPlot')
 % calculates a model from the fitting parameters from GPU_fit
 % depending on the diamond type
-%%srin I think this is just for plotting the fit once you get it, it isn't
+%%srin this is just for plotting the fit once you get it, it isn't
 %%used in the fitting itself
 % Parameters
 % ----------
@@ -28,7 +28,7 @@ arguments
     p double
     freq double
     kwargs.diamond {mustBeMember(kwargs.diamond, ...
-        ['N15', 'N14', 'DAC', 'singlet', 'doublet', 'triplet', 'gaussian'])} = 'gauss4';
+        ['N15', 'N14', 'DAC', 'singlet', 'doublet', 'triplet', 'gaussian', 'gaussTwin', 'gaussTwinD'])} = 'gaussTwinD';
     kwargs.data {mustBeNumericOrLogical} = false;
     kwargs.checkPlot (1, 1) {mustBeBoolean(kwargs.checkPlot)} = false;
 end
@@ -36,6 +36,39 @@ end
 x = freq;
 switch kwargs.diamond
 
+
+    case {'gaussTwinD'}
+
+        argx1 = (x - (p(1) - p(2) - p(3) + p(13))).^2 ./ (2 * (p(8) - p(9)).^2);
+        argx2 = (x - (p(1) - p(2) + p(3) - p(13))).^2 ./ (2 * (p(10) - p(11)).^2);
+        argx3 = (x - (p(1) + p(2) - p(3) - p(13))).^2 ./ (2 * (p(8) + p(9)).^2);
+        argx4 = (x - (p(1) + p(2) + p(3) + p(13))).^2 ./ (2 * (p(10) + p(11)).^2);
+
+        ex1 = exp(-argx1);
+        ex2 = exp(-argx2);
+        ex3 = exp(-argx3);
+        ex4 = exp(-argx4);
+
+        model = (p(4)) .* ex1 + (p(5)) .* ex2 + (p(6)) .* ex3 + (p(7)) .* ex4 + p(12);
+
+    
+    case {'gaussTwin'}
+
+        argx1 = (x - (p(1) - p(2) - p(3))).^2 ./ (2 * (p(8) - p(9)).^2);
+        argx2 = (x - (p(1) - p(2) + p(3))).^2 ./ (2 * (p(10) - p(11)).^2);
+        argx3 = (x - (p(1) + p(2) - p(3))).^2 ./ (2 * (p(8) + p(9)).^2);
+        argx4 = (x - (p(1) + p(2) + p(3))).^2 ./ (2 * (p(10) + p(11)).^2);
+
+        ex1 = exp(-argx1);
+        ex2 = exp(-argx2);
+        ex3 = exp(-argx3);
+        ex4 = exp(-argx4);
+
+        model = (p(4) - p(5)) .* ex1 + (p(6) - p(7)) .* ex2 + (p(4) + p(5)) .* ex3 + (p(6) + p(7)) .* ex4 + p(12);
+
+
+
+    
     case {'gauss4'}
 
         argx1 = (x - (p(1) + p(2))).^2 ./ (2 * (p(3) + p(4)).^2);

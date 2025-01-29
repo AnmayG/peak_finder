@@ -1,4 +1,4 @@
-function [binDataNorm, freq] = prepare_raw_data(expData, binSize, nRes, header, kwargs)
+function [binDataNorm, freq] = prepare_raw_data_pf(sig,sp, binSize, nRes, header, kwargs)
 %[binDataNorm, freq] = prepare_raw_data(expData, binSize, nRes; 'header', 'gpuData', 'crop', 'normalize', 'fcrop')
 % prepares the raw data for GPU fitting
 % 1. reshapes the data into from (x*y) -> (y,x) array
@@ -26,7 +26,8 @@ function [binDataNorm, freq] = prepare_raw_data(expData, binSize, nRes, header, 
 %         Chose if the data should be normalized
 
 arguments
-    expData
+    sig
+    sp
     binSize = 1 %%srin
     nRes = 1 %%srin
     header = 'none'
@@ -43,7 +44,7 @@ end
 %%fRanges = get_franges(expData, header);   %everything is in GHz
 
 %%freq = fRanges{nRes};
-freq=expData.SweepParam/1E9; %%srin let's use MHz since it makes values like E and deltaD nicer
+freq=sp/1E9; %%srin let's use MHz since it makes values like E and deltaD nicer
 
 %% data preparation
 % X/Y of unbinned data
@@ -51,8 +52,8 @@ freq=expData.SweepParam/1E9; %%srin let's use MHz since it makes values like E a
 %%spanXTrans = 1:expData.imgNumCols;
 %%spanYTrans = 1:expData.imgNumRows;
 
-spanXTrans = 1:size(expData.signal,1);
-spanYTrans = 1:size(expData.signal,2);
+spanXTrans = 1:size(sig,1);
+spanYTrans = 1:size(sig,2);
 
 %%srin this thing is trying to stack the low and high mw frequencies, which
 %%we don't need to do. even so, retain datastack as a variable for the
@@ -82,7 +83,7 @@ end
 %%we don't need to reshape here
 
 %%data = QDMreshape(dataStack, expData.imgNumRows, expData.imgNumCols);
-data=expData.signal;
+data=sig;
 
 %% Data cropping
 if ~strcmp(kwargs.crop, 'none') 

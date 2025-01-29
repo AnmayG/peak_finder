@@ -58,12 +58,9 @@ function fig = gpu_fit_checkPlot(fit, binDataNorm, freq, binSize, diamond)
         plot(freq, squeeze(binDataNorm(y,x,:)), 'k.','DisplayName','data')
         hold on
         idx = xy2index(y,x, size(binDataNorm));
-        plot(freq, model_GPU(fit.p(:,idx), freq, 'diamond', diamond), 'b','DisplayName','Fit')
-        % disp(fit.initialGuess.p(:,idx))
-        plot(freq, model_GPU(fit.initialGuess.p(:,idx), freq, 'diamond', diamond), 'g--','DisplayName','initial guess')
-        if ~strcmp(fit.pg, 'none')
-            plot(freq, model_GPU(fit.pg(:,idx), freq, 'diamond', diamond), 'r:','DisplayName','pre guess')
-        end
+        plot(freq, 1+model_GPU(fit.p(:,idx), freq, 'diamond', diamond), 'b','DisplayName','Fit')
+        plot(freq, 1+model_GPU(fit.initialGuess.p(:,idx), freq, 'diamond', diamond), 'g--','DisplayName','initial guess')
+        plot(freq, 1+model_GPU(fit.pg(:,idx), freq, 'diamond', diamond), 'r:','DisplayName','pre guess')
         ylabel('Intensity')
         xlabel('f (Hz)')
         legend('Location','southwest', 'NumColumns',3)
@@ -84,8 +81,8 @@ function fig = gpu_fit_checkPlot(fit, binDataNorm, freq, binSize, diamond)
                         fit.resonance(y,x), fit.chiSquares(y,x)');
         logMsg('info',msg,1,0);
 
-        % msg = sprintf('width: %.5f; contrast %.5f; state: %i',...
-        %     fit.width(y,x), fit.contrastA(y,x), fit.states(y,x)');
-        % logMsg('info',msg,1,0);
+        msg = sprintf('width: %.5f; contrast %.5f; state: %i',...
+            fit.width(y,x), fit.contrastA(y,x), fit.states(y,x)');
+        logMsg('info',msg,1,0);
     end
 end
