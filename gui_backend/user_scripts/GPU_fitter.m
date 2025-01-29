@@ -28,11 +28,12 @@ function function_outputs = GPU_fit(function_inputs)
         curr_param = function_inputs(i).parameters;
         pdf=curr_param;
         fit=fit_resonance_pf(in.signal,in.SweepParam,curr_param,1,1);
+        assignin('base','fit',fit)
         fp=fit.parameters;
 
-
-        pdf(:,:,1) = permute(fp(1,:,:), [1,3,2]) * 1e9;
-        pdf(:,:,2) = permute(fp(2,:,:), [1,3,2]) * 1e9; %because gpufit swaps x and y
+        fp=permute(fp, [1, 3, 2]); %because gpufit swaps x and y
+        pdf(:,:,1) = fp(1,:,:) * 1e9;
+        pdf(:,:,2) = fp(2,:,:) * 1e9; 
 
 
         for x=1:size(mask,1)
@@ -43,6 +44,10 @@ function function_outputs = GPU_fit(function_inputs)
             end
         end
         function_outputs(i).parameters = pdf;
+        indices = [1, 2, 3, 8, 9, 10, 11, 13];
+        fpp=fp;
+        fpp(indices,:,:) = fp(indices,:,:) * 1e9;
+        function_outputs(i).gpu = fpp;
         %function_outputs(i).peak_info = peak_info;
     end
 end

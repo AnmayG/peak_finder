@@ -123,6 +123,7 @@ if kwargs.normalize
     end
 else
     binDataNorm = binData;
+    
 end
 
 
@@ -169,6 +170,7 @@ end
 %binDataNorm(binDataNorm>0.99905)=1; %SRIN this is a temporary cropper
 
 %% return gpudata if kwargs.gpuData == true
+assignin('base','bindatnorm', binDataNorm)
 if isequal(kwargs.gpuData, true)
     binDataNorm = gpu_data_reshape(binDataNorm);
 end
