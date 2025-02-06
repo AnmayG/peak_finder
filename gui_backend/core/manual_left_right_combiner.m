@@ -24,6 +24,7 @@ rightData = load(rightFile);
 % Access the gWide structure from both files
 gWide_left = leftData.gWide;
 gWide_right = rightData.gWide;
+incommensurate = false;
 
 % Normalize the signal field of both gWide_left and gWide_right
 % Normalization is based on the mean of the first 5 elements of each pixel's z-dimension
@@ -41,7 +42,14 @@ left_z_spacing = mean(diff(gWide_left.SweepParam));
 
 % Determine the required number of interpolation steps
 z_gap = gWide_right.SweepParam(1) - gWide_left.SweepParam(end);
-num_interp_steps = round(z_gap / left_z_spacing);
+num_interp_steps = round(z_gap / left_z_spacing) -1; %-1 is srin for S2
+remainder = round(z_gap / left_z_spacing)-z_gap / left_z_spacing;      %mod(z_gap, left_z_spacing);
+
+if remainder ~= 0
+    incom = remainder*left_z_spacing;
+    incommensurate = true;
+end
+    
 
 % Initialize the interpolated signal array
 interp_signal = zeros(size(gWide_left.signal, 1), size(gWide_left.signal, 2), num_interp_steps);
@@ -56,8 +64,20 @@ parfor z = 1:num_interp_steps
 end
 
 % Append the SweepParam, signal fields, and interpolated gap
-interp_sweep_param = linspace(gWide_left.SweepParam(end), gWide_right.SweepParam(1), num_interp_steps);
-gWide_left.SweepParam = [gWide_left.SweepParam, interp_sweep_param, gWide_right.SweepParam];
+interp_sweep_param = linspace(gWide_left.SweepParam(end)+left_z_spacing, gWide_right.SweepParam(1)-left_z_spacing, num_interp_steps);
+if incommensurate
+    disp(length(gWide_left.SweepParam))
+    ennd=gWide_left.SweepParam(1)+left_z_spacing*(num_interp_steps+length(gWide_left.SweepParam)+length(gWide_right.SweepParam)-1);
+    gWide_left.SweepParam=gWide_left.SweepParam(1):left_z_spacing:ennd;
+    gWide_left.offset=incom;
+    incom=incom/1e6;
+    disp(['Warning: offset of ', num2str(incom), ' MHz'])
+else
+    gWide_left.SweepParam = [gWide_left.SweepParam, interp_sweep_param, gWide_right.SweepParam];
+end
+
+
+%gWide_left.SweepParam=list; %srin for S2
 gWide_left.signal = cat(3, gWide_left.signal, interp_signal, gWide_right.signal);
 gWide = gWide_left;
 
